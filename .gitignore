@@ -1,0 +1,60 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+bin/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Banco de dados (se houver arquivos locais)
+*.db
+*.sqlite
+
+# Docker
+docker-compose.override.yml
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Arquivos de configuração local (se houver)
+*.properties.local
+*-local.properties
+
+# Diretórios de build dos módulos
+**/target/
+**/build/
+
+# Exceções (mantemos os arquivos de configuração importantes)
+!docker-compose.yml
+!**/Dockerfile
+!**/pom.xml
+!**/src/**/*.java
+!**/src/**/*.xml
+!**/src/**/*.properties
+!**/META-INF/**/*

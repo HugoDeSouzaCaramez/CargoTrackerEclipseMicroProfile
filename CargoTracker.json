@@ -1,0 +1,508 @@
+{
+  "info": {
+    "name": "CargoTracker - Complete API Test Suite",
+    "description": "Coleção completa cobrindo todos os microsserviços e fluxos do CargoTracker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl_booking",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "baseUrl_handling",
+      "value": "http://localhost:8084",
+      "type": "string"
+    },
+    {
+      "key": "baseUrl_routing",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "baseUrl_tracking",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "trackingNumber",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔍 Health Checks",
+      "item": [
+        {
+          "name": "Booking MS - Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_booking}}/health",
+              "host": ["{{baseUrl_booking}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Handling MS - Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_handling}}/health",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Booking MS - Cargo Operations",
+      "item": [
+        {
+          "name": "Book New Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingAmount\": 1500,\n  \"originLocation\": \"CNHKG\",\n  \"destLocation\": \"USNYC\",\n  \"destArrivalDeadline\": \"2023-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_booking}}/cargobooking",
+              "host": ["{{baseUrl_booking}}"],
+              "path": ["cargobooking"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has booking ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.bookingId).to.not.be.null;",
+                  "    pm.collectionVariables.set(\"bookingId\", jsonData.bookingId);",
+                  "    console.log(\"Booking ID: \" + jsonData.bookingId);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assign Route to Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_booking}}/cargorouting",
+              "host": ["{{baseUrl_booking}}"],
+              "path": ["cargorouting"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Cargo routed successfully\", function () {",
+                  "    pm.expect(pm.response.text()).to.include(\"Cargo Routed\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🛣️ Routing MS - Route Operations",
+      "item": [
+        {
+          "name": "Get Optimal Route",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_routing}}/cargoRouting/optimalRoute?origin=CNHKG&destination=USNYC&deadline=2023-12-31",
+              "host": ["{{baseUrl_routing}}"],
+              "path": ["cargoRouting", "optimalRoute"],
+              "query": [
+                {
+                  "key": "origin",
+                  "value": "CNHKG"
+                },
+                {
+                  "key": "destination",
+                  "value": "USNYC"
+                },
+                {
+                  "key": "deadline",
+                  "value": "2023-12-31"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has transit path\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.transitEdges).to.be.an('array');",
+                  "    console.log(\"Transit edges found: \" + jsonData.transitEdges.length);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Voyages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_routing}}/cargoRouting/voyages",
+              "host": ["{{baseUrl_routing}}"],
+              "path": ["cargoRouting", "voyages"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👐 Handling MS - Activity Operations",
+      "item": [
+        {
+          "name": "Register RECEIVE Activity (No Voyage)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"voyageNumber\": \"\",\n  \"unLocode\": \"CNHKG\",\n  \"handlingType\": \"RECEIVE\",\n  \"completionTime\": \"2023-10-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register LOAD Activity (With Voyage)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"voyageNumber\": \"V001\",\n  \"unLocode\": \"CNHKG\",\n  \"handlingType\": \"LOAD\",\n  \"completionTime\": \"2023-10-05\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling"]
+            }
+          }
+        },
+        {
+          "name": "Register UNLOAD Activity (With Voyage)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"voyageNumber\": \"V001\",\n  \"unLocode\": \"USNYC\",\n  \"handlingType\": \"UNLOAD\",\n  \"completionTime\": \"2023-11-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling"]
+            }
+          }
+        },
+        {
+          "name": "Register CUSTOMS Activity (No Voyage)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"voyageNumber\": \"\",\n  \"unLocode\": \"USNYC\",\n  \"handlingType\": \"CUSTOMS\",\n  \"completionTime\": \"2023-11-16\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling"]
+            }
+          }
+        },
+        {
+          "name": "Register CLAIM Activity (No Voyage)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"voyageNumber\": \"\",\n  \"unLocode\": \"USNYC\",\n  \"handlingType\": \"CLAIM\",\n  \"completionTime\": \"2023-11-17\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling"]
+            }
+          }
+        },
+        {
+          "name": "Get Handling History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling/history/{{bookingId}}",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling", "history", "{{bookingId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has handling history\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.handlingEvents).to.be.an('array');",
+                  "    console.log(\"Handling events found: \" + jsonData.handlingEvents.length);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📊 Tracking MS - Query Operations",
+      "item": [
+        {
+          "name": "Get Tracking by Booking ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_tracking}}/tracking/booking/{{bookingId}}",
+              "host": ["{{baseUrl_tracking}}"],
+              "path": ["tracking", "booking", "{{bookingId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tracking data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.trackingNumber).to.not.be.null;",
+                  "    pm.collectionVariables.set(\"trackingNumber\", jsonData.trackingNumber);",
+                  "    console.log(\"Tracking Number: \" + jsonData.trackingNumber);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Trackings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_tracking}}/tracking",
+              "host": ["{{baseUrl_tracking}}"],
+              "path": ["tracking"]
+            }
+          }
+        },
+        {
+          "name": "Get Tracking by Tracking Number",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl_tracking}}/tracking/{{trackingNumber}}",
+              "host": ["{{baseUrl_tracking}}"],
+              "path": ["tracking", "{{trackingNumber}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 Complete Workflow Test",
+      "item": [
+        {
+          "name": "Complete Cargo Lifecycle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingAmount\": 2000,\n  \"originLocation\": \"JPTYO\",\n  \"destLocation\": \"SGSIN\",\n  \"destArrivalDeadline\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_booking}}/cargobooking",
+              "host": ["{{baseUrl_booking}}"],
+              "path": ["cargobooking"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "var newBookingId = jsonData.bookingId;",
+                  "console.log(\"New Booking ID for workflow: \" + newBookingId);",
+                  "",
+                  "// Store for use in subsequent requests",
+                  "pm.collectionVariables.set(\"workflowBookingId\", newBookingId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Route the New Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{workflowBookingId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl_booking}}/cargorouting",
+              "host": ["{{baseUrl_booking}}"],
+              "path": ["cargorouting"]
+            }
+          }
+        },
+        {
+          "name": "Simulate Complete Handling Journey",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"bookingId\": \"{{workflowBookingId}}\",\n    \"voyageNumber\": \"\",\n    \"unLocode\": \"JPTYO\",\n    \"handlingType\": \"RECEIVE\",\n    \"completionTime\": \"2023-12-01\"\n  },\n  {\n    \"bookingId\": \"{{workflowBookingId}}\",\n    \"voyageNumber\": \"V202\",\n    \"unLocode\": \"JPTYO\",\n    \"handlingType\": \"LOAD\",\n    \"completionTime\": \"2023-12-02\"\n  },\n  {\n    \"bookingId\": \"{{workflowBookingId}}\",\n    \"voyageNumber\": \"V202\",\n    \"unLocode\": \"SGSIN\",\n    \"handlingType\": \"UNLOAD\",\n    \"completionTime\": \"2023-12-10\"\n  },\n  {\n    \"bookingId\": \"{{workflowBookingId}}\",\n    \"voyageNumber\": \"\",\n    \"unLocode\": \"SGSIN\",\n    \"handlingType\": \"CUSTOMS\",\n    \"completionTime\": \"2023-12-11\"\n  },\n  {\n    \"bookingId\": \"{{workflowBookingId}}\",\n    \"voyageNumber\": \"\",\n    \"unLocode\": \"SGSIN\",\n    \"handlingType\": \"CLAIM\",\n    \"completionTime\": \"2023-12-12\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl_handling}}/cargohandling/batch",
+              "host": ["{{baseUrl_handling}}"],
+              "path": ["cargohandling", "batch"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
