@@ -1,7 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "cargo")
@@ -31,7 +33,10 @@ public class CargoEntity {
     @Column(name = "dest_arrival_deadline")
     private Date destArrivalDeadline;
     
-    // Getters and setters
+    // Relacionamento com Legs
+    @OneToMany(mappedBy = "cargo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LegEntity> legs = new ArrayList<>();
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
@@ -49,4 +54,14 @@ public class CargoEntity {
     
     public Date getDestArrivalDeadline() { return destArrivalDeadline; }
     public void setDestArrivalDeadline(Date destArrivalDeadline) { this.destArrivalDeadline = destArrivalDeadline; }
+    
+    // para legs
+    public List<LegEntity> getLegs() { return legs; }
+    public void setLegs(List<LegEntity> legs) { this.legs = legs; }
+    
+    // Método helper para adicionar leg
+    public void addLeg(LegEntity leg) {
+        legs.add(leg);
+        leg.setCargo(this);
+    }
 }

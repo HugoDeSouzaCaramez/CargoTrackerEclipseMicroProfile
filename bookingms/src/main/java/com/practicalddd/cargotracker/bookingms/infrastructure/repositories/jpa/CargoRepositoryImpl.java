@@ -4,6 +4,7 @@ import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity;
+import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.LegEntity;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.mappers.CargoMapper;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -32,6 +33,12 @@ public class CargoRepositoryImpl implements CargoRepository {
             CargoEntity entity = entityManager.createNamedQuery("CargoEntity.findByBookingId", CargoEntity.class)
                     .setParameter("bookingId", bookingId.getBookingId())
                     .getSingleResult();
+            
+            // Carregar as legs explicitamente para evitar LazyInitializationException
+            if (entity != null && entity.getLegs() != null) {
+                entity.getLegs().size(); // Force initialization
+            }
+            
             return Optional.of(CargoMapper.toDomain(entity));
         } catch (NoResultException e) {
             logger.log(Level.FINE, "Find called on non-existant Booking ID.", e);
@@ -49,9 +56,42 @@ public class CargoRepositoryImpl implements CargoRepository {
             CargoEntity existing = entityManager.createNamedQuery("CargoEntity.findByBookingId", CargoEntity.class)
                     .setParameter("bookingId", cargo.getBookingId().getBookingId())
                     .getSingleResult();
-            entity.setId(existing.getId());
-            entityManager.merge(entity);
+            
+            // Carregar as legs existentes para evitar problemas de merge
+            if (existing.getLegs() != null) {
+                existing.getLegs().size(); // Force initialization
+            }
+            
+            // Atualizar os dados básicos
+            existing.setBookingAmount(entity.getBookingAmount());
+            existing.setOriginLocation(entity.getOriginLocation());
+            existing.setDestLocation(entity.getDestLocation());
+            existing.setDestArrivalDeadline(entity.getDestArrivalDeadline());
+            
+            // Limpar legs existentes e adicionar as novas
+            existing.getLegs().clear();
+            if (entity.getLegs() != null) {
+                for (LegEntity leg : entity.getLegs()) {
+                    LegEntity newLeg = new LegEntity(
+                        leg.getVoyageNumber(),
+                        leg.getLoadLocation(),
+                        leg.getUnloadLocation(),
+                        leg.getLoadTime(),
+                        leg.getUnloadTime()
+                    );
+                    newLeg.setCargo(existing);
+                    existing.getLegs().add(newLeg);
+                }
+            }
+            
+            entityManager.merge(existing);
         } catch (NoResultException e) {
+            // Para nova entidade, garantir que as legs tenham referência ao cargo
+            if (entity.getLegs() != null) {
+                for (LegEntity leg : entity.getLegs()) {
+                    leg.setCargo(entity);
+                }
+            }
             entityManager.persist(entity);
         }
     }
@@ -66,6 +106,14 @@ public class CargoRepositoryImpl implements CargoRepository {
     public List<Cargo> findAll() {
         List<CargoEntity> entities = entityManager.createNamedQuery("CargoEntity.findAll", CargoEntity.class)
                 .getResultList();
+        
+        // Carregar as legs para cada entidade
+        for (CargoEntity entity : entities) {
+            if (entity.getLegs() != null) {
+                entity.getLegs().size(); // Force initialization
+            }
+        }
+        
         return entities.stream()
                 .map(CargoMapper::toDomain)
                 .collect(Collectors.toList());
