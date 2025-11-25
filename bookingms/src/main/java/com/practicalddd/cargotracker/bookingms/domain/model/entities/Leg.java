@@ -1,9 +1,11 @@
-package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
-
-import com.practicalddd.cargotracker.bookingms.domain.model.entities.Location;
+package com.practicalddd.cargotracker.bookingms.domain.model.entities;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+
+import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
+import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Voyage;
+
 import java.util.Date;
 
 @Entity

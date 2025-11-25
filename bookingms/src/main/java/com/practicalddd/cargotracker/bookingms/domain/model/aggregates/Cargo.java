@@ -3,8 +3,6 @@ package com.practicalddd.cargotracker.bookingms.domain.model.aggregates;
 import javax.persistence.*;
 
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
-import com.practicalddd.cargotracker.bookingms.domain.model.entities.Location;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.LastCargoHandledEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.*;
 
 @Entity

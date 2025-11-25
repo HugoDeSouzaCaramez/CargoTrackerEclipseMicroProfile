@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.bookingms.domain.model.entities;
+package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;

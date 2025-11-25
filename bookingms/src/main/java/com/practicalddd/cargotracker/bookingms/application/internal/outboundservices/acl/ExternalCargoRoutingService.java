@@ -1,8 +1,8 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.outboundservices.acl;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.entities.Location;
+import com.practicalddd.cargotracker.bookingms.domain.model.entities.Leg;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Leg;
+import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.RouteSpecification;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Voyage;
 import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.ExternalCargoRoutingClient;

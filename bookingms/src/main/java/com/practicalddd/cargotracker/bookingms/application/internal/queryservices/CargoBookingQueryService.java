@@ -1,9 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.queryservices;
 
 
-import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
+import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;

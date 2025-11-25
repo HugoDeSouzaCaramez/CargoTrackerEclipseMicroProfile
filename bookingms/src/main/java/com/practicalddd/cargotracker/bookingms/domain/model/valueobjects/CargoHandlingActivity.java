@@ -1,8 +1,5 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.entities.Location;
-
-
 import javax.persistence.*;
 import java.io.Serializable;
 

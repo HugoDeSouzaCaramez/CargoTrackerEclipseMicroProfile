@@ -1,11 +1,11 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.commandservices;
 
 import com.practicalddd.cargotracker.bookingms.application.internal.outboundservices.acl.ExternalCargoRoutingService;
-import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
+import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
 import com.practicalddd.cargotracker.shareddomain.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.shareddomain.events.CargoRoutedEvent;
