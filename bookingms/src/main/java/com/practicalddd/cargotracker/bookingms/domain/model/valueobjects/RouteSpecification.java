@@ -1,37 +1,17 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.Objects;
 
-@Embeddable
 public class RouteSpecification {
-    private static final long serialVersionUID = 1L;
-    
-    @Embedded
-    @AttributeOverride(name = "unLocCode", column = @Column(name = "spec_origin_id"))
     private final Location origin;
-    
-    @Embedded
-    @AttributeOverride(name = "unLocCode", column = @Column(name = "spec_destination_id"))
     private final Location destination;
-    
-    @Temporal(TemporalType.DATE)
-    @Column(name = "spec_arrival_deadline")
-    @NotNull
     private final Date arrivalDeadline;
-
-    public RouteSpecification() {
-        this.origin = null;
-        this.destination = null;
-        this.arrivalDeadline = null;
-    }
 
     public RouteSpecification(Location origin, Location destination, Date arrivalDeadline) {
         this.origin = origin;
         this.destination = destination;
-        this.arrivalDeadline = new Date(arrivalDeadline.getTime()); // Defensive copy
+        this.arrivalDeadline = new Date(arrivalDeadline.getTime());
     }
 
     public Location getOrigin() {
@@ -43,7 +23,7 @@ public class RouteSpecification {
     }
 
     public Date getArrivalDeadline() {
-        return new Date(arrivalDeadline.getTime()); // Defensive copy
+        return new Date(arrivalDeadline.getTime());
     }
 
     @Override

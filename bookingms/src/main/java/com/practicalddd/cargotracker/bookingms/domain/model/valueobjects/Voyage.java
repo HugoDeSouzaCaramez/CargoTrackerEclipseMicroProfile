@@ -1,17 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import java.util.Objects;
 
-@Embeddable
 public class Voyage {
-    @Column(name = "voyage_number")
     private final String voyageNumber;
-
-    public Voyage() {
-        this.voyageNumber = null;
-    }
 
     public Voyage(String voyageNumber) {
         this.voyageNumber = voyageNumber;

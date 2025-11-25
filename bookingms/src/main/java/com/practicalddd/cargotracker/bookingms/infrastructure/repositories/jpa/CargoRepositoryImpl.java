@@ -3,49 +3,57 @@ package com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity;
+import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.mappers.CargoMapper;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-import javax.transaction.UserTransaction;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class CargoRepositoryImpl implements CargoRepository {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(CargoRepositoryImpl.class.getName());
 
     @PersistenceContext(unitName = "bookingms")
     private EntityManager entityManager;
 
-    @Inject
-    private UserTransaction userTransaction;
-
     @Override
-    public Cargo find(BookingId bookingId) {
-        Cargo cargo;
+    public Optional<Cargo> find(BookingId bookingId) {
         try {
-            cargo = entityManager.createNamedQuery("Cargo.findByBookingId", Cargo.class)
-                    .setParameter("bookingId", bookingId)
+            CargoEntity entity = entityManager.createNamedQuery("CargoEntity.findByBookingId", CargoEntity.class)
+                    .setParameter("bookingId", bookingId.getBookingId())
                     .getSingleResult();
+            return Optional.of(CargoMapper.toDomain(entity));
         } catch (NoResultException e) {
             logger.log(Level.FINE, "Find called on non-existant Booking ID.", e);
-            cargo = null;
+            return Optional.empty();
         }
-        return cargo;
     }
 
     @Override
     @Transactional
     public void store(Cargo cargo) {
-        entityManager.persist(cargo);
+        CargoEntity entity = CargoMapper.toEntity(cargo);
+        
+        // Check if exists
+        try {
+            CargoEntity existing = entityManager.createNamedQuery("CargoEntity.findByBookingId", CargoEntity.class)
+                    .setParameter("bookingId", cargo.getBookingId().getBookingId())
+                    .getSingleResult();
+            entity.setId(existing.getId());
+            entityManager.merge(entity);
+        } catch (NoResultException e) {
+            entityManager.persist(entity);
+        }
     }
 
     @Override
@@ -56,32 +64,19 @@ public class CargoRepositoryImpl implements CargoRepository {
 
     @Override
     public List<Cargo> findAll() {
-        return entityManager.createNamedQuery("Cargo.findAll", Cargo.class)
+        List<CargoEntity> entities = entityManager.createNamedQuery("CargoEntity.findAll", CargoEntity.class)
                 .getResultList();
+        return entities.stream()
+                .map(CargoMapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<BookingId> findAllBookingIds() {
-        List<BookingId> bookingIds = new ArrayList<>();
-        try {
-            bookingIds = entityManager.createNamedQuery("Cargo.getAllBookingIds", BookingId.class)
-                    .getResultList();
-        } catch (NoResultException e) {
-            logger.log(Level.FINE, "Unable to get all booking IDs", e);
-        }
-        return bookingIds;
-    }
-
-    public void storeManualTx(Cargo cargo) throws Exception {
-        try {
-            userTransaction.begin();
-            entityManager.persist(cargo);
-            userTransaction.commit();
-        } catch (Exception e) {
-            if (userTransaction.getStatus() == javax.transaction.Status.STATUS_ACTIVE) {
-                userTransaction.rollback();
-            }
-            throw e;
-        }
+        List<String> bookingIds = entityManager.createNamedQuery("CargoEntity.getAllBookingIds", String.class)
+                .getResultList();
+        return bookingIds.stream()
+                .map(BookingId::new)
+                .collect(Collectors.toList());
     }
 }

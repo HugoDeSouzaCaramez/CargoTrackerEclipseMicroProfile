@@ -1,19 +1,16 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.queryservices;
 
-
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
 public class CargoBookingQueryService {
-
 
     @Inject
     private CargoRepository cargoRepository;
@@ -28,6 +25,7 @@ public class CargoBookingQueryService {
    }
 
     public Cargo find(String bookingId){
-        return cargoRepository.find(new BookingId(bookingId));
+        return cargoRepository.find(new BookingId(bookingId))
+                .orElseThrow(() -> new RuntimeException("Cargo not found"));
     }
 }

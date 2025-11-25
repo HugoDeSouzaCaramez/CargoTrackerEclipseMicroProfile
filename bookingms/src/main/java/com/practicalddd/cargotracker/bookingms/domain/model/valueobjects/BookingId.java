@@ -1,18 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import java.io.Serializable;
 import java.util.Objects;
 
-@Embeddable
-public class BookingId implements Serializable {
-    @Column(name="booking_id")
+public class BookingId {
     private final String bookingId;
-
-    public BookingId() {
-        this.bookingId = null;
-    }
 
     public BookingId(String bookingId) {
         this.bookingId = bookingId;

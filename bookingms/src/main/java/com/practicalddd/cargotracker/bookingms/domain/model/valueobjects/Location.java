@@ -1,17 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import java.util.Objects;
 
-@Embeddable
 public class Location {
-    @Column(name = "origin_id")
     private final String unLocCode;
-    
-    public Location() {
-        this.unLocCode = null;
-    }
     
     public Location(String unLocCode) {
         this.unLocCode = unLocCode;

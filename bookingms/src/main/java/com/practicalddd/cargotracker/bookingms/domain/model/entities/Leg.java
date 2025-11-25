@@ -1,46 +1,32 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.entities;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Voyage;
 
 import java.util.Date;
 
-@Entity
 public class Leg {
-    private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Embedded
     private Voyage voyage;
-    @Embedded
-    @AttributeOverride(name = "unLocCode", column = @Column(name = "load_location_id"))
     private Location loadLocation;
-    @Embedded
-    @AttributeOverride(name = "unLocCode", column = @Column(name = "unload_location_id"))
     private Location unloadLocation;
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "load_time")
-    @NotNull
     private Date loadTime;
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "unload_time")
-    @NotNull
     private Date unloadTime;
 
-    public Leg(){}
+    public Leg() {}
 
-    public Leg(Voyage voyage,Location loadLocation,
-               Location unloadLocation,Date loadTime, Date unloadTime){
+    public Leg(Voyage voyage, Location loadLocation,
+               Location unloadLocation, Date loadTime, Date unloadTime) {
         this.voyage = voyage;
         this.loadLocation = loadLocation;
         this.unloadLocation = unloadLocation;
         this.loadTime = loadTime;
         this.unloadTime = unloadTime;
-
     }
 
+    // Getters
+    public Voyage getVoyage() { return voyage; }
+    public Location getLoadLocation() { return loadLocation; }
+    public Location getUnloadLocation() { return unloadLocation; }
+    public Date getLoadTime() { return loadTime; }
+    public Date getUnloadTime() { return unloadTime; }
 }

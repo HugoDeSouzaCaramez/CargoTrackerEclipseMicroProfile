@@ -15,7 +15,7 @@ public class BookCargoCommand {
         this.bookingAmount = bookingAmount;
         this.originLocation = originLocation;
         this.destLocation = destLocation;
-        this.destArrivalDeadline = new Date(destArrivalDeadline.getTime()); // Defensive copy
+        this.destArrivalDeadline = new Date(destArrivalDeadline.getTime());
     }
 
     public BookCargoCommand(int bookingAmount,
@@ -23,23 +23,9 @@ public class BookCargoCommand {
         this(null, bookingAmount, originLocation, destLocation, destArrivalDeadline);
     }
 
-    public String getBookingId() { 
-        return this.bookingId; 
-    }
-    
-    public int getBookingAmount() {
-        return this.bookingAmount;
-    }
-
-    public String getOriginLocation() { 
-        return originLocation; 
-    }
-
-    public String getDestLocation() { 
-        return destLocation; 
-    }
-
-    public Date getDestArrivalDeadline() { 
-        return new Date(destArrivalDeadline.getTime()); // Defensive copy
-    }
+    public String getBookingId() { return this.bookingId; }
+    public int getBookingAmount() { return this.bookingAmount; }
+    public String getOriginLocation() { return originLocation; }
+    public String getDestLocation() { return destLocation; }
+    public Date getDestArrivalDeadline() { return new Date(destArrivalDeadline.getTime()); }
 }

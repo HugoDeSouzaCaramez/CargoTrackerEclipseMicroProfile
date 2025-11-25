@@ -1,18 +1,20 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.commandservices;
 
-import com.practicalddd.cargotracker.bookingms.application.internal.outboundservices.acl.ExternalCargoRoutingService;
+import com.practicalddd.cargotracker.bookingms.application.internal.events.DomainEventPublisher;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
+import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoBookedEvent;
+import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoRoutedEvent;
+import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.CargoNotFoundException;
+import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.RouteNotFoundException;
+import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
+import com.practicalddd.cargotracker.bookingms.domain.model.services.ExternalRoutingService;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
-import com.practicalddd.cargotracker.shareddomain.events.CargoBookedEvent;
-import com.practicalddd.cargotracker.shareddomain.events.CargoRoutedEvent;
-import com.practicalddd.cargotracker.shareddomain.events.CargoRoutedEventData;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -23,57 +25,40 @@ public class CargoBookingCommandService {
     private CargoRepository cargoRepository;
     
     @Inject
-    private Event<CargoBookedEvent> cargoBookedEventControl;
+    private DomainEventPublisher eventPublisher;
     
     @Inject
-    private Event<CargoRoutedEvent> cargoRoutedEventControl;
-    
-    @Inject
-    private ExternalCargoRoutingService externalCargoRoutingService;
+    private ExternalRoutingService externalRoutingService;
 
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
         String bookingId = cargoRepository.nextBookingId();
         
-        BookCargoCommand commandWithId = new BookCargoCommand(
-            bookingId,
-            bookCargoCommand.getBookingAmount(),
-            bookCargoCommand.getOriginLocation(),
-            bookCargoCommand.getDestLocation(),
-            bookCargoCommand.getDestArrivalDeadline()
-        );
-        
-        Cargo cargo = new Cargo(commandWithId);
+        Cargo cargo = CargoFactory.createCargo(bookCargoCommand, bookingId);
         cargoRepository.store(cargo);
 
-        CargoBookedEvent cargoBookedEvent = new CargoBookedEvent();
-        cargoBookedEvent.setId(bookingId);
-        cargoBookedEventControl.fire(cargoBookedEvent);
-
+        eventPublisher.publish(new CargoBookedEvent(bookingId));
         return new BookingId(bookingId);
     }
 
     @Transactional
     public void assignRouteToCargo(RouteCargoCommand routeCargoCommand) {
-        Cargo cargo = cargoRepository.find(new BookingId(routeCargoCommand.getCargoBookingId()));
+        Cargo cargo = cargoRepository.find(new BookingId(routeCargoCommand.getCargoBookingId()))
+                .orElseThrow(() -> new CargoNotFoundException(routeCargoCommand.getCargoBookingId()));
 
-        CargoItinerary cargoItinerary = externalCargoRoutingService
+        CargoItinerary cargoItinerary = externalRoutingService
                 .fetchRouteForSpecification(cargo.getRouteSpecification());
 
         if (cargoItinerary.getLegs().isEmpty()) {
-            throw new RuntimeException("Nenhuma rota encontrada para a especificação fornecida. " +
-                    "Origem: " + cargo.getRouteSpecification().getOrigin().getUnLocCode() + ", " +
-                    "Destino: " + cargo.getRouteSpecification().getDestination().getUnLocCode() + ", " +
-                    "Deadline: " + cargo.getRouteSpecification().getArrivalDeadline());
+            throw new RouteNotFoundException(
+                cargo.getRouteSpecification().getOrigin().getUnLocCode(),
+                cargo.getRouteSpecification().getDestination().getUnLocCode()
+            );
         }
 
         cargo.assignToRoute(cargoItinerary);
         cargoRepository.store(cargo);
 
-        CargoRoutedEvent cargoRoutedEvent = new CargoRoutedEvent();
-        CargoRoutedEventData eventData = new CargoRoutedEventData();
-        eventData.setBookingId(routeCargoCommand.getCargoBookingId());
-        cargoRoutedEvent.setContent(eventData);
-        cargoRoutedEventControl.fire(cargoRoutedEvent);
+        eventPublisher.publish(new CargoRoutedEvent(routeCargoCommand.getCargoBookingId()));
     }
 }

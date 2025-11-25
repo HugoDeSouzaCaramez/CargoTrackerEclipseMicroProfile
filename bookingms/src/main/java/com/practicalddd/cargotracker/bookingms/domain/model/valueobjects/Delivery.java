@@ -1,63 +1,40 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
-import javax.persistence.*;
-import java.util.Date;
-
-@Embeddable
 public class Delivery {
-
-    public static final Date ETA_UNKOWN = null;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "routing_status")
     private RoutingStatus routingStatus;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "transport_status")
     private TransportStatus transportStatus;
-    @Column(name = "last_known_location_id")
-    @AttributeOverride(name = "unLocCode", column = @Column(name = "last_known_location_id"))
     private Location lastKnownLocation;
-    @Column(name = "current_voyage_number")
-    @AttributeOverride(name = "voyageNumber", column = @Column(name = "current_voyage_number"))
     private Voyage currentVoyage;
-    @Embedded
     private LastCargoHandledEvent lastEvent;
-
-    public static final CargoHandlingActivity NO_ACTIVITY = new CargoHandlingActivity();
-    @Embedded
-    private CargoHandlingActivity nextExpectedActivity;
-
 
     public Delivery() {}
 
     public Delivery(LastCargoHandledEvent lastEvent, CargoItinerary itinerary,
                     RouteSpecification routeSpecification) {
         this.lastEvent = lastEvent;
-
-        this.routingStatus = calculateRoutingStatus(itinerary,
-                routeSpecification);
+        this.routingStatus = calculateRoutingStatus(itinerary, routeSpecification);
         this.transportStatus = calculateTransportStatus();
         this.lastKnownLocation = calculateLastKnownLocation();
         this.currentVoyage = calculateCurrentVoyage();
     }
 
-    public Delivery updateOnRouting(RouteSpecification routeSpecification,
-                             CargoItinerary itinerary) {
-
-
+    public Delivery updateOnRouting(RouteSpecification routeSpecification, CargoItinerary itinerary) {
         return new Delivery(this.lastEvent, itinerary, routeSpecification);
+    }
+
+    public Delivery updateOnHandling(LastCargoHandledEvent lastCargoHandledEvent) {
+        Delivery newDelivery = new Delivery(lastCargoHandledEvent, null, null);
+        newDelivery.routingStatus = this.routingStatus;
+        return newDelivery;
     }
 
     public static Delivery derivedFrom(RouteSpecification routeSpecification,
                                 CargoItinerary itinerary, LastCargoHandledEvent lastCargoHandledEvent) {
-
         return new Delivery(lastCargoHandledEvent, itinerary, routeSpecification);
     }
 
-
-    private RoutingStatus calculateRoutingStatus(CargoItinerary itinerary,
-                                                 RouteSpecification routeSpecification) {
-        if (itinerary == null || itinerary == CargoItinerary.EMPTY_ITINERARY) {
+    private RoutingStatus calculateRoutingStatus(CargoItinerary itinerary, RouteSpecification routeSpecification) {
+        if (itinerary == null || itinerary.isEmpty()) {
             return RoutingStatus.NOT_ROUTED;
         } else {
             return RoutingStatus.ROUTED;
@@ -65,26 +42,22 @@ public class Delivery {
     }
 
     private TransportStatus calculateTransportStatus() {
-        if (lastEvent.getHandlingEventType() == null) {
+        if (lastEvent == null || lastEvent.getHandlingEventType() == null) {
             return TransportStatus.NOT_RECEIVED;
         }
 
         switch (lastEvent.getHandlingEventType()) {
-            case "LOAD":
-                return TransportStatus.ONBOARD_CARRIER;
+            case "LOAD": return TransportStatus.ONBOARD_CARRIER;
             case "UNLOAD":
             case "RECEIVE":
-            case "CUSTOMS":
-                return TransportStatus.IN_PORT;
-            case "CLAIM":
-                return TransportStatus.CLAIMED;
-            default:
-                return TransportStatus.UNKNOWN;
+            case "CUSTOMS": return TransportStatus.IN_PORT;
+            case "CLAIM": return TransportStatus.CLAIMED;
+            default: return TransportStatus.UNKNOWN;
         }
     }
 
     private Location calculateLastKnownLocation() {
-        if (lastEvent != null) {
+        if (lastEvent != null && lastEvent.getHandlingEventLocation() != null) {
             return new Location(lastEvent.getHandlingEventLocation());
         } else {
             return null;
@@ -99,20 +72,10 @@ public class Delivery {
         }
     }
 
-
-    public RoutingStatus getRoutingStatus() { return this.routingStatus;}
-    public TransportStatus getTransportStatus() { return this.transportStatus;}
-    public Location getLastKnownLocation() {
-        return this.lastKnownLocation;
-    }
-    public void setLastKnownLocation(Location lastKnownLocation) {
-        this.lastKnownLocation = lastKnownLocation;
-    }
-    public void setLastEvent(LastCargoHandledEvent lastEvent) {
-        this.lastEvent = lastEvent;
-    }
-    public Voyage getCurrentVoyage() {
-        return this.currentVoyage;
-    }
-
+    // Getters
+    public RoutingStatus getRoutingStatus() { return this.routingStatus; }
+    public TransportStatus getTransportStatus() { return this.transportStatus; }
+    public Location getLastKnownLocation() { return this.lastKnownLocation; }
+    public Voyage getCurrentVoyage() { return this.currentVoyage; }
+    public LastCargoHandledEvent getLastEvent() { return this.lastEvent; }
 }
