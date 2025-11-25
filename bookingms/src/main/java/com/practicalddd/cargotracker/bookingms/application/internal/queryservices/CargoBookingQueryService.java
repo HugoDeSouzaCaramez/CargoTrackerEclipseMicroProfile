@@ -3,7 +3,7 @@ package com.practicalddd.cargotracker.bookingms.application.internal.queryservic
 
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
-import com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa.CargoRepository;
+import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;

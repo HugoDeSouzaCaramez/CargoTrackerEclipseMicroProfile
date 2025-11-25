@@ -2,6 +2,7 @@ package com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa;
 
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -17,12 +18,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-public class CargoRepository {
-
+public class CargoRepositoryImpl implements CargoRepository {
     private static final long serialVersionUID = 1L;
-
-    private static final Logger logger = Logger.getLogger(
-            CargoRepository.class.getName());
+    private static final Logger logger = Logger.getLogger(CargoRepositoryImpl.class.getName());
 
     @PersistenceContext(unitName = "bookingms")
     private EntityManager entityManager;
@@ -30,24 +28,48 @@ public class CargoRepository {
     @Inject
     private UserTransaction userTransaction;
 
+    @Override
     public Cargo find(BookingId bookingId) {
         Cargo cargo;
         try {
-            cargo = entityManager.createNamedQuery("Cargo.findByBookingId",
-                    Cargo.class)
+            cargo = entityManager.createNamedQuery("Cargo.findByBookingId", Cargo.class)
                     .setParameter("bookingId", bookingId)
                     .getSingleResult();
         } catch (NoResultException e) {
             logger.log(Level.FINE, "Find called on non-existant Booking ID.", e);
             cargo = null;
         }
-
         return cargo;
     }
 
+    @Override
     @Transactional
     public void store(Cargo cargo) {
         entityManager.persist(cargo);
+    }
+
+    @Override
+    public String nextBookingId() {
+        String random = UUID.randomUUID().toString().toUpperCase();
+        return random.substring(0, random.indexOf("-"));
+    }
+
+    @Override
+    public List<Cargo> findAll() {
+        return entityManager.createNamedQuery("Cargo.findAll", Cargo.class)
+                .getResultList();
+    }
+
+    @Override
+    public List<BookingId> findAllBookingIds() {
+        List<BookingId> bookingIds = new ArrayList<>();
+        try {
+            bookingIds = entityManager.createNamedQuery("Cargo.getAllBookingIds", BookingId.class)
+                    .getResultList();
+        } catch (NoResultException e) {
+            logger.log(Level.FINE, "Unable to get all booking IDs", e);
+        }
+        return bookingIds;
     }
 
     public void storeManualTx(Cargo cargo) throws Exception {
@@ -61,28 +83,5 @@ public class CargoRepository {
             }
             throw e;
         }
-    }
-
-    public String nextBookingId() {
-        String random = UUID.randomUUID().toString().toUpperCase();
-        return random.substring(0, random.indexOf("-"));
-    }
-
-    public List<Cargo> findAll() {
-        return entityManager.createNamedQuery("Cargo.findAll", Cargo.class)
-                .getResultList();
-    }
-
-    public List<BookingId> findAllBookingIds() {
-        List<BookingId> bookingIds = new ArrayList<BookingId>();
-
-        try {
-            bookingIds = entityManager.createNamedQuery(
-                    "Cargo.getAllBookingIds", BookingId.class).getResultList();
-        } catch (NoResultException e) {
-            logger.log(Level.FINE, "Unable to get all booking IDs", e);
-        }
-
-        return bookingIds;
     }
 }

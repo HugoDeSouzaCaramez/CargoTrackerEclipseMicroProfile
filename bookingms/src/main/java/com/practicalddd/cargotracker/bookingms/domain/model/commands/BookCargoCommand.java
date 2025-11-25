@@ -3,45 +3,43 @@ package com.practicalddd.cargotracker.bookingms.domain.model.commands;
 import java.util.Date;
 
 public class BookCargoCommand {
-    private String bookingId;
-    private int bookingAmount;
-    private String originLocation;
-    private String destLocation;
-    private Date destArrivalDeadline;
+    private final String bookingId;
+    private final int bookingAmount;
+    private final String originLocation;
+    private final String destLocation;
+    private final Date destArrivalDeadline;
 
-    public BookCargoCommand(){}
-
-    public BookCargoCommand(int bookingAmount,
-                            String originLocation, String destLocation, Date destArrivalDeadline){
-
+    public BookCargoCommand(String bookingId, int bookingAmount,
+                           String originLocation, String destLocation, Date destArrivalDeadline) {
+        this.bookingId = bookingId;
         this.bookingAmount = bookingAmount;
         this.originLocation = originLocation;
         this.destLocation = destLocation;
-        this.destArrivalDeadline = destArrivalDeadline;
+        this.destArrivalDeadline = new Date(destArrivalDeadline.getTime()); // Defensive copy
     }
 
-    public void setBookingId(String bookingId){ this.bookingId = bookingId; }
-
-    public String getBookingId(){return this.bookingId;}
-    public void setBookingAmount(int bookingAmount){
-        this.bookingAmount = bookingAmount;
+    public BookCargoCommand(int bookingAmount,
+                           String originLocation, String destLocation, Date destArrivalDeadline) {
+        this(null, bookingAmount, originLocation, destLocation, destArrivalDeadline);
     }
 
-
-    public int getBookingAmount(){
+    public String getBookingId() { 
+        return this.bookingId; 
+    }
+    
+    public int getBookingAmount() {
         return this.bookingAmount;
     }
 
+    public String getOriginLocation() { 
+        return originLocation; 
+    }
 
-    public String getOriginLocation() {return originLocation; }
+    public String getDestLocation() { 
+        return destLocation; 
+    }
 
-    public void setOriginLocation(String originLocation) {this.originLocation = originLocation; }
-
-    public String getDestLocation() { return destLocation; }
-
-    public void setDestLocation(String destLocation) { this.destLocation = destLocation; }
-
-    public Date getDestArrivalDeadline() { return destArrivalDeadline; }
-
-    public void setDestArrivalDeadline(Date destArrivalDeadline) { this.destArrivalDeadline = destArrivalDeadline; }
+    public Date getDestArrivalDeadline() { 
+        return new Date(destArrivalDeadline.getTime()); // Defensive copy
+    }
 }

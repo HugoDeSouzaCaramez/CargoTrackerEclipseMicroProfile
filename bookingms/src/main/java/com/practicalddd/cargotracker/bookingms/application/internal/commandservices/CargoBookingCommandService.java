@@ -5,10 +5,9 @@ import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.BookingId
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
-import com.practicalddd.cargotracker.shareddomain.events.CargoBookedEvent;
+import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.RouteSpecification;
-import com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa.CargoRepository;
+import com.practicalddd.cargotracker.shareddomain.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.shareddomain.events.CargoRoutedEvent;
 import com.practicalddd.cargotracker.shareddomain.events.CargoRoutedEventData;
 
@@ -22,20 +21,29 @@ public class CargoBookingCommandService {
 
     @Inject
     private CargoRepository cargoRepository;
+    
     @Inject
     private Event<CargoBookedEvent> cargoBookedEventControl;
-
+    
     @Inject
     private Event<CargoRoutedEvent> cargoRoutedEventControl;
-
+    
     @Inject
     private ExternalCargoRoutingService externalCargoRoutingService;
 
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
         String bookingId = cargoRepository.nextBookingId();
-        bookCargoCommand.setBookingId(bookingId);
-        Cargo cargo = new Cargo(bookCargoCommand);
+        
+        BookCargoCommand commandWithId = new BookCargoCommand(
+            bookingId,
+            bookCargoCommand.getBookingAmount(),
+            bookCargoCommand.getOriginLocation(),
+            bookCargoCommand.getDestLocation(),
+            bookCargoCommand.getDestArrivalDeadline()
+        );
+        
+        Cargo cargo = new Cargo(commandWithId);
         cargoRepository.store(cargo);
 
         CargoBookedEvent cargoBookedEvent = new CargoBookedEvent();
@@ -52,7 +60,6 @@ public class CargoBookingCommandService {
         CargoItinerary cargoItinerary = externalCargoRoutingService
                 .fetchRouteForSpecification(cargo.getRouteSpecification());
 
-        // VALIDAÇÃO CRÍTICA - VERIFICAR SE A ROTA NÃO ESTÁ VAZIA
         if (cargoItinerary.getLegs().isEmpty()) {
             throw new RuntimeException("Nenhuma rota encontrada para a especificação fornecida. " +
                     "Origem: " + cargo.getRouteSpecification().getOrigin().getUnLocCode() + ", " +
@@ -69,5 +76,4 @@ public class CargoBookingCommandService {
         cargoRoutedEvent.setContent(eventData);
         cargoRoutedEventControl.fire(cargoRoutedEvent);
     }
-
 }
