@@ -1,6 +1,5 @@
 package com.practicalddd.cargotracker.handlingms.interfaces.rest;
 
-
 import com.practicalddd.cargotracker.handlingms.application.internal.commandservices.HandlingActivityRegistrationCommandService;
 import com.practicalddd.cargotracker.handlingms.interfaces.rest.dto.HandlingActivityRegistrationResource;
 import com.practicalddd.cargotracker.handlingms.interfaces.rest.transform.HandlingActivityRegistrationCommandDTOAssembler;
@@ -15,26 +14,19 @@ import javax.ws.rs.core.Response;
 
 @Path("/cargohandling")
 @ApplicationScoped
-public  class CargoHandlingController {
-
-
-    private HandlingActivityRegistrationCommandService handlingActivityRegistrationCommandService;
+public class CargoHandlingController {
 
     @Inject
-    public CargoHandlingController(HandlingActivityRegistrationCommandService handlingActivityRegistrationCommandService){
-        this.handlingActivityRegistrationCommandService = handlingActivityRegistrationCommandService;
-    }
+    private HandlingActivityRegistrationCommandService handlingActivityRegistrationCommandService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response registerHandlingActivity(HandlingActivityRegistrationResource handlingActivityRegistrationResource){
-        System.out.println("***"+handlingActivityRegistrationResource.getBookingId());
-        System.out.println("***"+handlingActivityRegistrationResource.getHandlingType());
-
-        handlingActivityRegistrationCommandService.registerHandlingActivityService(HandlingActivityRegistrationCommandDTOAssembler.toCommandFromDTO(handlingActivityRegistrationResource));
-        final Response returnValue = Response.ok()
+    public Response registerHandlingActivity(HandlingActivityRegistrationResource handlingActivityRegistrationResource) {
+        handlingActivityRegistrationCommandService.registerHandlingActivityService(
+            HandlingActivityRegistrationCommandDTOAssembler.toCommandFromDTO(handlingActivityRegistrationResource));
+        
+        return Response.ok()
                 .entity("Handling Activity Registered")
                 .build();
-        return returnValue;
     }
 }

@@ -1,71 +1,63 @@
 package com.practicalddd.cargotracker.handlingms.domain.model.aggregates;
 
+import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.*;
 
-import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.CargoBookingId;
-import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.Location;
-import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.Type;
-import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.VoyageNumber;
-
-import javax.persistence.*;
 import java.util.Date;
 
-@Entity
-@NamedQuery(name = "HandlingEvent.findByBookingId",
-        query = "Select e from HandlingActivity e where e.cargoBookingId.bookingId = :bookingId")
-@Table(name="handling_activity")
 public class HandlingActivity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Enumerated(EnumType.STRING)
-    @Column(name="event_type")
-    private Type type;
-    @Embedded
-    private VoyageNumber voyageNumber;
-    @Embedded
-    private Location location;
-    @Temporal(TemporalType.DATE)
-    @Column(name = "event_completion_time")
-    private Date completionTime;
-
-    @Embedded
-    private CargoBookingId cargoBookingId;
-
-    public HandlingActivity(){}
+    private final CargoBookingId cargoBookingId;
+    private final Type type;
+    private final VoyageNumber voyageNumber;
+    private final Location location;
+    private final Date completionTime;
 
     public HandlingActivity(CargoBookingId cargoBookingId, Date completionTime,
-                        Type type, Location location, VoyageNumber voyageNumber) {
-
-        if (type.prohibitsVoyage()) {
-            throw new IllegalArgumentException(
-                    "VoyageNumber is not allowed with event type " + type);
-        }
-
-        this.voyageNumber = voyageNumber;
+                          Type type, Location location, VoyageNumber voyageNumber) {
+        
+        validateHandlingActivity(type, voyageNumber);
+        
+        this.cargoBookingId = cargoBookingId;
         this.completionTime = (Date) completionTime.clone();
         this.type = type;
         this.location = location;
-        this.cargoBookingId = cargoBookingId;
+        this.voyageNumber = voyageNumber;
     }
 
     public HandlingActivity(CargoBookingId cargoBookingId, Date completionTime,
                           Type type, Location location) {
-
-        System.out.println("***Type is**"+type);
-        if (type.requiresVoyage()) {
-            throw new IllegalArgumentException(
-                    "VoyageNumber is required for event type " + type);
-        }
-
+        
+        validateHandlingActivity(type, null);
+        
+        this.cargoBookingId = cargoBookingId;
         this.completionTime = (Date) completionTime.clone();
         this.type = type;
         this.location = location;
-        this.cargoBookingId = cargoBookingId;
         this.voyageNumber = null;
     }
 
+    private void validateHandlingActivity(Type type, VoyageNumber voyageNumber) {
+        if (type.requiresVoyage() && voyageNumber == null) {
+            throw new IllegalArgumentException(
+                    "VoyageNumber is required for event type " + type);
+        }
+        
+        if (type.prohibitsVoyage() && voyageNumber != null) {
+            throw new IllegalArgumentException(
+                    "VoyageNumber is not allowed with event type " + type);
+        }
+    }
 
+    // Business methods
+    public boolean isLoadEvent() {
+        return Type.LOAD.equals(this.type);
+    }
+
+    public boolean isUnloadEvent() {
+        return Type.UNLOAD.equals(this.type);
+    }
+
+    // Getters apenas - sem setters para imutabilidade
     public Type getType() {
         return this.type;
     }
@@ -78,11 +70,11 @@ public class HandlingActivity {
         return new Date(this.completionTime.getTime());
     }
 
-    public Location getLocation() { return this.location; }
+    public Location getLocation() { 
+        return this.location; 
+    }
 
     public CargoBookingId getCargoBookingId() {
         return this.cargoBookingId;
     }
-
-
 }

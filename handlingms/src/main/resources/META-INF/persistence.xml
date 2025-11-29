@@ -7,16 +7,18 @@
                                  http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
   <persistence-unit name="handlingms" transaction-type="JTA">
     <jta-data-source>handlingms</jta-data-source>
-    <class>com.practicalddd.cargotracker.handlingms.domain.model.aggregates.HandlingActivity</class>
+    <class>com.practicalddd.cargotracker.handlingms.infrastructure.persistence.jpa.entities.HandlingActivityJPA</class>
     <properties>
-      <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
+      <property name="eclipselink.ddl-generation" value="create-tables"/>
       <property name="eclipselink.ddl-generation.output-mode" value="database"/>
       <property name="eclipselink.deploy-on-startup" value="true"/>
       <property name="eclipselink.jdbc.native-sql" value="true"/>
       <property name="eclipselink.logging.logger" value="JavaLogger"/>
       <property name="eclipselink.logging.parameters" value="true"/>
+      <property name="eclipselink.logging.level" value="FINE"/>
       <property name="eclipselink.target-database" value="org.eclipse.persistence.platform.database.MySQLPlatform"/>
       <property name="eclipselink.target-server" value="io.helidon.integrations.cdi.eclipselink.CDISEPlatform"/>
+      <property name="eclipselink.weaving" value="false"/>
     </properties>
   </persistence-unit>
 </persistence>
