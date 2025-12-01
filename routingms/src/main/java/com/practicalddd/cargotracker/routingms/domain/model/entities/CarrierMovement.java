@@ -1,56 +1,45 @@
 package com.practicalddd.cargotracker.routingms.domain.model.entities;
 
-
 import com.practicalddd.cargotracker.routingms.domain.model.valueobjects.Location;
 
-import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
-@Entity
-@Table(name="carrier_movement")
 public class CarrierMovement {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-    @Temporal(TemporalType.DATE)
-    @Column(name="arrival_date")
-    private Date arrivalDate;
-    @Temporal(TemporalType.DATE)
-    @Column(name="departure_Date")
-    private Date departureDate;
-    @Embedded
-    private Location arrivalLocation;
-    @Embedded
-    @AttributeOverride(name = "unLocCode", column = @Column(name = "departure_location_id"))
     private Location departureLocation;
+    private Location arrivalLocation;
+    private Date departureDate;
+    private Date arrivalDate;
 
-    public CarrierMovement(){}
+    public CarrierMovement() {}
 
-    public CarrierMovement(Location departureLocation,
-                           Location arrivalLocation, Date departureDate, Date arrivalDate) {
-
-        this.departureDate = departureDate;
-        this.arrivalDate = arrivalDate;
+    public CarrierMovement(Location departureLocation, Location arrivalLocation, 
+                         Date departureDate, Date arrivalDate) {
         this.departureLocation = departureLocation;
         this.arrivalLocation = arrivalLocation;
+        this.departureDate = departureDate;
+        this.arrivalDate = arrivalDate;
     }
 
-    public Location getDepartureLocation() {
-        return departureLocation;
+    // Getters
+    public Location getDepartureLocation() { return departureLocation; }
+    public Location getArrivalLocation() { return arrivalLocation; }
+    public Date getDepartureDate() { return departureDate; }
+    public Date getArrivalDate() { return arrivalDate; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CarrierMovement)) return false;
+        CarrierMovement that = (CarrierMovement) o;
+        return Objects.equals(departureLocation, that.departureLocation) &&
+               Objects.equals(arrivalLocation, that.arrivalLocation) &&
+               Objects.equals(departureDate, that.departureDate) &&
+               Objects.equals(arrivalDate, that.arrivalDate);
     }
 
-    public Location getArrivalLocation() {
-        return arrivalLocation;
+    @Override
+    public int hashCode() {
+        return Objects.hash(departureLocation, arrivalLocation, departureDate, arrivalDate);
     }
-
-    public Date getDepartureDate() {
-        return this.departureDate;
-    }
-
-    public Date getArrivalDate() {
-        return this.arrivalDate;
-    }
-
-
 }

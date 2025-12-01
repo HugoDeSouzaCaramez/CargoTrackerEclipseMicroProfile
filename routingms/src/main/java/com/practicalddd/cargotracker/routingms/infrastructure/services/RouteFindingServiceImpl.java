@@ -1,0 +1,47 @@
+package com.practicalddd.cargotracker.routingms.infrastructure.services;
+
+import com.practicalddd.cargotracker.routingms.domain.model.aggregates.Voyage;
+import com.practicalddd.cargotracker.routingms.domain.model.entities.CarrierMovement;
+import com.practicalddd.cargotracker.routingms.domain.model.repositories.VoyageRepository;
+import com.practicalddd.cargotracker.routingms.domain.model.services.RouteFindingService;
+import com.practicalddd.cargotracker.routingms.domain.model.valueobjects.Location;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@ApplicationScoped
+public class RouteFindingServiceImpl implements RouteFindingService {
+
+    @Inject
+    private VoyageRepository voyageRepository;
+
+    @Override
+    public List<Voyage> findAvailableVoyages(Location origin, Location destination, Date deadline) {
+        List<Voyage> allVoyages = voyageRepository.findAll();
+        
+        return allVoyages.stream()
+                .filter(voyage -> hasMatchingRoute(voyage, origin, destination, deadline))
+                .collect(Collectors.toList());
+    }
+
+    private boolean hasMatchingRoute(Voyage voyage, Location origin, Location destination, Date deadline) {
+        return voyage.getSchedule().getCarrierMovements().stream()
+                .anyMatch(movement -> matchesRoute(movement, origin, destination, deadline));
+    }
+
+    private boolean matchesRoute(CarrierMovement movement, Location origin, Location destination, Date deadline) {
+        if (movement == null || movement.getArrivalDate() == null) {
+            return false;
+        }
+
+        boolean locationMatches = movement.getDepartureLocation().equals(origin) && 
+                                movement.getArrivalLocation().equals(destination);
+        boolean timeMatches = movement.getArrivalDate().before(deadline) || 
+                            movement.getArrivalDate().equals(deadline);
+
+        return locationMatches && timeMatches;
+    }
+}
