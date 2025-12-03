@@ -1,90 +1,125 @@
 package com.practicalddd.cargotracker.trackingms.application.internal.commandservices;
 
+import com.practicalddd.cargotracker.trackingms.application.ports.output.TrackingEventPublisher;
+import com.practicalddd.cargotracker.trackingms.application.ports.output.TrackingRepository;
 import com.practicalddd.cargotracker.trackingms.domain.model.aggregates.TrackingActivity;
-import com.practicalddd.cargotracker.trackingms.domain.model.aggregates.TrackingNumber;
 import com.practicalddd.cargotracker.trackingms.domain.model.commands.AddTrackingEventCommand;
 import com.practicalddd.cargotracker.trackingms.domain.model.commands.AssignTrackingNumberCommand;
-import com.practicalddd.cargotracker.trackingms.domain.model.entities.BookingId;
-import com.practicalddd.cargotracker.trackingms.infrastructure.repositories.jpa.TrackingRepository;
+import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.TrackingNumber;
+import com.practicalddd.cargotracker.trackingms.domain.service.TrackingDomainService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @ApplicationScoped
+@Transactional
 public class AssignTrackingIdCommandService {
+
+    private static final Logger logger = Logger.getLogger(AssignTrackingIdCommandService.class.getName());
 
     @Inject
     private TrackingRepository trackingRepository;
 
-    private static final Logger logger = Logger.getLogger(AssignTrackingIdCommandService.class.getName());
+    @Inject
+    private TrackingEventPublisher eventPublisher;
+
+    @Inject
+    private TrackingDomainService trackingDomainService;
 
     @Transactional
-    public TrackingNumber assignTrackingNumberToCargo(AssignTrackingNumberCommand assignTrackingNumberCommand) {
-        System.out.println(
-                "===========================================================================================================");
-        System.out.println(
-                "===========================================================================================================");
-        System.out.println(
-                "===========================================================================================================");
-        System.out.println(
-                "===========================================================================================================");
-        System.out.println(
-                "===========================================================================================================");
-        System.out.println(
-                "===========================================================================================================");
-        System.out.println(
-                " public TrackingNumber assignTrackingNumberToCargo(AssignTrackingNumberCommand assignTrackingNumberCommand)");
-        String trackingNumber = trackingRepository.nextTrackingNumber();
-        assignTrackingNumberCommand.setTrackingNumber(trackingNumber);
-        TrackingActivity activity = new TrackingActivity(assignTrackingNumberCommand);
-        System.out.println("***Going to store in repository");
-        trackingRepository.store(activity);
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        System.out.println("?????????????????????????????????????????");
-        return new TrackingNumber(trackingNumber);
+    public TrackingNumber assignTrackingNumberToCargo(AssignTrackingNumberCommand command) {
+        logger.info("=== INICIANDO assignTrackingNumberToCargo ===");
+        logger.info("Booking ID: " + command.getBookingId());
+
+        try {
+            // Gerar número de tracking
+            String trackingNumberStr = trackingRepository.generateNextTrackingNumber();
+            logger.info("Tracking number gerado: " + trackingNumberStr);
+
+            command.setTrackingNumber(trackingNumberStr);
+
+            // Criar atividade usando o serviço de domínio
+            logger.info("Criando TrackingActivity...");
+            TrackingActivity activity = trackingDomainService.createTrackingActivity(command);
+            logger.info("TrackingActivity criada");
+
+            // Salvar no repositório
+            logger.info("Salvando no repositório...");
+            trackingRepository.save(activity);
+            logger.info("Salvo no repositório");
+
+            // Publicar eventos de domínio
+            logger.info("Publicando eventos...");
+            eventPublisher.publishDomainEvents(activity);
+
+            logger.info("✅ Tracking number atribuído com sucesso: " + trackingNumberStr);
+            return new TrackingNumber(trackingNumberStr);
+
+        } catch (Exception e) {
+            logger.severe("❌ ERRO em assignTrackingNumberToCargo: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Transactional
-    public void addTrackingEvent(AddTrackingEventCommand addTrackingEventCommand) {
+    public void addTrackingEvent(AddTrackingEventCommand command) {
+        logger.info("=== INICIANDO addTrackingEvent ===");
+        logger.info("Booking ID: " + command.getBookingId());
+        logger.info("Event Type: " + command.getEventType());
+
         try {
-            logger.info("Processing tracking event for booking: " +
-                    addTrackingEventCommand.getBookingId());
+            // Validar evento
+            trackingDomainService.validateTrackingEvent(command);
 
-            TrackingActivity trackingActivity = trackingRepository.find(
-                    new BookingId(addTrackingEventCommand.getBookingId()));
+            // Buscar atividade existente
+            logger.info("Buscando TrackingActivity existente...");
+            Optional<TrackingActivity> optionalActivity = trackingRepository
+                    .findByBookingId(new BookingId(command.getBookingId()));
 
-            if (trackingActivity == null) {
-                logger.warning("No TrackingActivity found for booking: " +
-                        addTrackingEventCommand.getBookingId() + ". Creating new one automatically.");
+            TrackingActivity trackingActivity;
 
-                String trackingNumber = trackingRepository.nextTrackingNumber();
+            if (optionalActivity.isPresent()) {
+                trackingActivity = optionalActivity.get();
+                logger.info("TrackingActivity encontrada: " +
+                        trackingActivity.getTrackingNumber().getTrackingNumber());
+            } else {
+                logger.warning("Nenhuma TrackingActivity encontrada para booking: " +
+                        command.getBookingId() + ". Criando nova...");
+
+                String trackingNumber = trackingRepository.generateNextTrackingNumber();
+                logger.info("Novo tracking number: " + trackingNumber);
+
                 AssignTrackingNumberCommand assignCommand = new AssignTrackingNumberCommand(
-                        addTrackingEventCommand.getBookingId(), trackingNumber);
-                trackingActivity = new TrackingActivity(assignCommand);
+                        command.getBookingId(), trackingNumber);
 
-                logger.info("Created new TrackingActivity with tracking number: " + trackingNumber);
+                trackingActivity = trackingDomainService.createTrackingActivity(assignCommand);
+                logger.info("Nova TrackingActivity criada");
             }
 
-            trackingActivity.addTrackingEvent(addTrackingEventCommand);
-            trackingRepository.store(trackingActivity);
+            // Adicionar evento usando serviço de domínio
+            logger.info("Adicionando evento à atividade...");
+            trackingDomainService.addTrackingEventToActivity(trackingActivity, command);
 
-            logger.info("Successfully stored tracking event for booking: " +
-                    addTrackingEventCommand.getBookingId() +
-                    ", Event Type: " + addTrackingEventCommand.getEventType());
+            // Salvar atividade atualizada
+            logger.info("Salvando atividade atualizada...");
+            trackingRepository.save(trackingActivity);
+
+            // Publicar eventos de domínio
+            logger.info("Publicando eventos...");
+            eventPublisher.publishDomainEvents(trackingActivity);
+
+            logger.info("✅ Evento de tracking armazenado com sucesso");
 
         } catch (Exception e) {
-            logger.severe("ERROR storing tracking event for booking: " +
-                    addTrackingEventCommand.getBookingId() + " - " + e.getMessage());
+            logger.severe("❌ ERRO em addTrackingEvent: " + e.getMessage());
             e.printStackTrace();
-            throw e; // Re-throw para rollback transacional
+            throw e;
         }
     }
 

@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.trackingms.interfaces.events;
+package com.practicalddd.cargotracker.trackingms.infrastructure.adapters.input.events;
 
 import com.practicalddd.cargotracker.shareddomain.events.CargoRoutedEvent;
 import com.practicalddd.cargotracker.trackingms.application.internal.commandservices.AssignTrackingIdCommandService;
@@ -6,12 +6,11 @@ import com.practicalddd.cargotracker.trackingms.domain.model.commands.AssignTrac
 import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.TrackingNumber;
 import com.practicalddd.cargotracker.trackingms.interfaces.events.transform.TrackingDetailsCommandEventAssembler;
 
-import java.util.logging.Logger;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class CargoRoutedEventHandler {
@@ -23,34 +22,23 @@ public class CargoRoutedEventHandler {
 
     @Transactional
     public void observeCargoRoutedEvent(@Observes CargoRoutedEvent event) {
-        System.out.println("???????????????????????????????????");
-        System.out.println("???????????????????????????????????");
-        System.out.println("???????????????????????????????????");
-        System.out.println("???????????????????????????????????");
-        System.out.println("???????????????????????????????????");
-        System.out.println("???????????????????????????????????");
-        System.out.println("****Observing Cargo Routed Event***");
         logger.info("🎯 === CARGO ROUTED EVENT RECEIVED ===");
         logger.info("📦 Booking ID: " + event.getContent().getBookingId());
         
         try {
-            AssignTrackingNumberCommand command = TrackingDetailsCommandEventAssembler.toCommandFromEvent(event);
-            TrackingNumber trackingNumber = assignTrackingIdCommandService.assignTrackingNumberToCargo(command);
+            AssignTrackingNumberCommand command = TrackingDetailsCommandEventAssembler
+                    .toCommandFromEvent(event);
+            
+            TrackingNumber trackingNumber = assignTrackingIdCommandService
+                    .assignTrackingNumberToCargo(command);
             
             logger.info("✅ Tracking number assigned: " + trackingNumber.getTrackingNumber() + 
                        " for booking: " + event.getContent().getBookingId());
+            
         } catch (Exception e) {
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO");
-            System.out.println("ERRO: " + e.getMessage());
             logger.severe("❌ Error assigning tracking number: " + e.getMessage());
             e.printStackTrace();
+            throw e; // Re-throw para rollback transacional
         }
     }
 }

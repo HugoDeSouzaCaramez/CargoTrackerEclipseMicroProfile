@@ -1,25 +1,43 @@
 package com.practicalddd.cargotracker.trackingms.domain.model.valueobjects;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.util.Date;
+import java.util.Objects;
 
-
-@Embeddable
 public class TrackingEventType {
+    
+    private final String eventType;
+    private final Date eventTime;
 
-    @Column(name = "event_type")
-    private String eventType;
-    @Column(name="event_time")
-    @Temporal(TemporalType.DATE)
-    private Date eventTime;
+    public TrackingEventType(String eventType, Date eventTime) {
+        if (eventType == null || eventType.trim().isEmpty()) {
+            throw new IllegalArgumentException("Event type cannot be null or empty");
+        }
+        if (eventTime == null) {
+            throw new IllegalArgumentException("Event time cannot be null");
+        }
+        this.eventType = eventType;
+        this.eventTime = new Date(eventTime.getTime()); // Defensive copy
+    }
 
-    public TrackingEventType(){}
-    public TrackingEventType(String eventType,Date eventTime){this.eventType = eventType;this.eventTime=eventTime;}
-    public void setEventType(String eventType){this.eventType = eventType;}
-    public String getEventType(){return this.eventType;}
-    public void setEventTime(Date eventTime){this.eventTime = eventTime;}
-    public Date getEventTime(){return this.eventTime; }
+    public String getEventType() {
+        return eventType;
+    }
+
+    public Date getEventTime() {
+        return new Date(eventTime.getTime()); // Defensive copy
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TrackingEventType that = (TrackingEventType) o;
+        return eventType.equals(that.eventType) &&
+               eventTime.equals(that.eventTime);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(eventType, eventTime);
+    }
 }

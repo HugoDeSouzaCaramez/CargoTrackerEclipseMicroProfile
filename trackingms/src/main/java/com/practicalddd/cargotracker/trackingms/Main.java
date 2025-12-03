@@ -3,13 +3,14 @@ package com.practicalddd.cargotracker.trackingms;
 import java.io.IOException;
 import java.util.logging.LogManager;
 
-import com.practicalddd.cargotracker.trackingms.infrastructure.brokers.rabbitmq.BookingEventBinder;
-import com.practicalddd.cargotracker.trackingms.infrastructure.brokers.rabbitmq.HandlingEventBinder;
-import com.practicalddd.cargotracker.trackingms.infrastructure.brokers.rabbitmq.RoutingEventBinder;
 import io.helidon.microprofile.server.Server;
 
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
+
+import com.practicalddd.cargotracker.trackingms.infrastructure.brokers.rabbitmq.BookingEventBinder;
+import com.practicalddd.cargotracker.trackingms.infrastructure.brokers.rabbitmq.HandlingEventBinder;
+import com.practicalddd.cargotracker.trackingms.infrastructure.brokers.rabbitmq.RoutingEventBinder;
 
 public final class Main {
 

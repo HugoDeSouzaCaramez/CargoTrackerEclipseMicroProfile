@@ -1,8 +1,8 @@
 package com.practicalddd.cargotracker.trackingms.infrastructure.repositories.jpa;
 
 import com.practicalddd.cargotracker.trackingms.domain.model.aggregates.TrackingActivity;
-import com.practicalddd.cargotracker.trackingms.domain.model.aggregates.TrackingNumber;
-import com.practicalddd.cargotracker.trackingms.domain.model.entities.BookingId;
+import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.TrackingNumber;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;

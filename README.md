@@ -1,3 +1,5 @@
+Get-Content init-routing-data.sql | docker exec -i cargotracker-mysql mysql -uroutingmsdb -proutingmsdb routingmsdb
+
 # DDD Cargo Tracking System
 
 ## 📋 Visão Geral do Projeto
