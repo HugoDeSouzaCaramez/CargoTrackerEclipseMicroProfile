@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.shareddomain.model;
+package com.practicalddd.cargotracker.bookingms.application.shared.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
@@ -7,7 +7,6 @@ import java.util.List;
 
 @XmlRootElement
 public class TransitPath implements Serializable {
-
     private List<TransitEdge> transitEdges;
 
     public TransitPath() {
@@ -24,10 +23,5 @@ public class TransitPath implements Serializable {
 
     public void setTransitEdges(List<TransitEdge> transitEdges) {
         this.transitEdges = transitEdges;
-    }
-
-    @Override
-    public String toString() {
-        return "TransitPath{" + "transitEdges=" + transitEdges + '}';
     }
 }

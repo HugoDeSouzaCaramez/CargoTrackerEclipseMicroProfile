@@ -1,6 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.commandservices;
 
 import com.practicalddd.cargotracker.bookingms.application.internal.events.DomainEventPublisher;
+import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoBookingInboundPort;
+import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoRoutingInboundPort;
+import com.practicalddd.cargotracker.bookingms.application.ports.outbound.ExternalRoutingService;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
@@ -10,7 +13,6 @@ import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.CargoNotF
 import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.RouteNotFoundException;
 import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
-import com.practicalddd.cargotracker.bookingms.domain.model.services.ExternalRoutingService;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
 
@@ -19,7 +21,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 @ApplicationScoped
-public class CargoBookingCommandService {
+public class CargoBookingCommandService implements CargoBookingInboundPort, CargoRoutingInboundPort {
 
     @Inject
     private CargoRepository cargoRepository;
@@ -30,6 +32,7 @@ public class CargoBookingCommandService {
     @Inject
     private ExternalRoutingService externalRoutingService;
 
+    @Override
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
         String bookingId = cargoRepository.nextBookingId();
@@ -41,6 +44,7 @@ public class CargoBookingCommandService {
         return new BookingId(bookingId);
     }
 
+    @Override
     @Transactional
     public void assignRouteToCargo(RouteCargoCommand routeCargoCommand) {
         Cargo cargo = cargoRepository.find(new BookingId(routeCargoCommand.getCargoBookingId()))

@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.shareddomain.events;
+package com.practicalddd.cargotracker.bookingms.application.ports.outbound.events;
 
 import java.util.Date;
 

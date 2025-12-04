@@ -1,12 +1,10 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.brokers.rabbitmq;
 
-import com.practicalddd.cargotracker.shareddomain.events.CargoBookedEvent;
-import com.practicalddd.cargotracker.shareddomain.events.CargoHandledEvent;
+import com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.rabbitmqadaptor.EventBinder;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
 
 @ApplicationScoped
 public class BookingEventBinder extends EventBinder {

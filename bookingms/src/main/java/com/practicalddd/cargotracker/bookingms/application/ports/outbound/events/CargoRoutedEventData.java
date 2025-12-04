@@ -1,7 +1,6 @@
-package com.practicalddd.cargotracker.shareddomain.events;
+package com.practicalddd.cargotracker.bookingms.application.ports.outbound.events;
 
 public class CargoRoutedEventData {
-
     private String bookingId;
 
     public CargoRoutedEventData(){}
@@ -11,5 +10,4 @@ public class CargoRoutedEventData {
     }
 
     public String getBookingId(){return this.bookingId;}
-
 }
