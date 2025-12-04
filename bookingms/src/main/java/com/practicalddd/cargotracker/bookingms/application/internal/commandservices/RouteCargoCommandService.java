@@ -1,17 +1,13 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.commandservices;
 
 import com.practicalddd.cargotracker.bookingms.application.internal.events.DomainEventPublisher;
-import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoBookingInboundPort;
-import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoRoutingInboundPort;
+import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoRoutingCommandPort;
 import com.practicalddd.cargotracker.bookingms.application.ports.outbound.ExternalRoutingService;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
-import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
-import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoRoutedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.CargoNotFoundException;
 import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.RouteNotFoundException;
-import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
@@ -20,8 +16,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+/**
+ * Serviço de aplicação para processar comandos de roteamento de cargas.
+ * Implementa apenas operações de escrita (commands).
+ */
 @ApplicationScoped
-public class CargoBookingCommandService implements CargoBookingInboundPort, CargoRoutingInboundPort {
+public class RouteCargoCommandService implements CargoRoutingCommandPort {
 
     @Inject
     private CargoRepository cargoRepository;
@@ -31,18 +31,6 @@ public class CargoBookingCommandService implements CargoBookingInboundPort, Carg
     
     @Inject
     private ExternalRoutingService externalRoutingService;
-
-    @Override
-    @Transactional
-    public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
-        String bookingId = cargoRepository.nextBookingId();
-        
-        Cargo cargo = CargoFactory.createCargo(bookCargoCommand, bookingId);
-        cargoRepository.store(cargo);
-
-        eventPublisher.publish(new CargoBookedEvent(bookingId));
-        return new BookingId(bookingId);
-    }
 
     @Override
     @Transactional

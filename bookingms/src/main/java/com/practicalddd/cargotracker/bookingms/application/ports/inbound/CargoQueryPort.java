@@ -9,7 +9,7 @@ import java.util.List;
  * Porta de entrada (inbound port) para consultas de cargas.
  * Segregação de Interface - separa operações de leitura das de escrita.
  */
-public interface CargoQueryInboundPort {
+public interface CargoQueryPort {
     
     /**
      * Obtém todas as cargas

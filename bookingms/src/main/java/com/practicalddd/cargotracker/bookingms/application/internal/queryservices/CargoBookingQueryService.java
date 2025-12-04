@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.queryservices;
 
-import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoQueryInboundPort;
+import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoQueryPort;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
@@ -11,7 +11,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
-public class CargoBookingQueryService implements CargoQueryInboundPort {
+public class CargoBookingQueryService implements CargoQueryPort {
 
     @Inject
     private CargoRepository cargoRepository;

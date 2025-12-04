@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.interfaces.rest;
 
-import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoQueryInboundPort;
+import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoQueryPort;
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.interfaces.rest.dto.CargoSummaryResource;
@@ -13,21 +13,26 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador REST para consultas de cargas.
+ * Apenas operações de leitura (HTTP GET).
+ */
 @Path("/cargoqueries")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class CargoQueryController {
 
-    private final CargoQueryInboundPort cargoQueryInboundPort;
+    private final CargoQueryPort cargoQueryPort;
 
     @Inject
-    public CargoQueryController(CargoQueryInboundPort cargoQueryInboundPort) {
-        this.cargoQueryInboundPort = cargoQueryInboundPort;
+    public CargoQueryController(CargoQueryPort cargoQueryPort) {
+        this.cargoQueryPort = cargoQueryPort;
     }
 
     @GET
+    @Path("/cargos")
     public Response getAllCargos() {
-        List<Cargo> cargos = cargoQueryInboundPort.findAllCargos();
+        List<Cargo> cargos = cargoQueryPort.findAllCargos();
         
         List<CargoSummaryResource> response = cargos.stream()
                 .map(this::toSummaryResource)
@@ -39,7 +44,7 @@ public class CargoQueryController {
     @GET
     @Path("/bookingIds")
     public Response getAllBookingIds() {
-        List<BookingId> bookingIds = cargoQueryInboundPort.getAllBookingIds();
+        List<BookingId> bookingIds = cargoQueryPort.getAllBookingIds();
         
         List<String> response = bookingIds.stream()
                 .map(BookingId::getBookingId)
@@ -49,9 +54,9 @@ public class CargoQueryController {
     }
 
     @GET
-    @Path("/{bookingId}")
+    @Path("/cargos/{bookingId}")
     public Response getCargoByBookingId(@PathParam("bookingId") String bookingId) {
-        Cargo cargo = cargoQueryInboundPort.findCargoByBookingId(bookingId);
+        Cargo cargo = cargoQueryPort.findCargoByBookingId(bookingId);
         return Response.ok(toDetailResource(cargo)).build();
     }
 
@@ -65,7 +70,7 @@ public class CargoQueryController {
     }
 
     private Object toDetailResource(Cargo cargo) {
-        // Em produção, criaria um DTO mais completo
+        // Em produção, criar DTO específico
         return cargo;
     }
 }

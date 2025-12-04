@@ -7,7 +7,7 @@ import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Booking
  * Porta de entrada (inbound port) para operações de booking de cargas.
  * Define o contrato que os adaptadores de entrada devem implementar.
  */
-public interface CargoBookingInboundPort {
+public interface CargoBookingCommandPort {
     
     /**
      * Reserva uma nova carga
