@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.bookingms;
+package com.practicalddd.cargotracker.bookingms.app;
 
 import java.io.IOException;
 import java.util.logging.LogManager;
