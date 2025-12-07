@@ -4,7 +4,7 @@ import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.Tracki
 
 import javax.json.bind.annotation.JsonbDateFormat;
 import javax.json.bind.annotation.JsonbProperty;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class TrackingEventResponse {
     
@@ -12,8 +12,8 @@ public class TrackingEventResponse {
     private String eventType;
     
     @JsonbProperty("eventTime")
-    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    private Date eventTime;
+    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime eventTime;
     
     @JsonbProperty("location")
     private String location;
@@ -30,9 +30,9 @@ public class TrackingEventResponse {
     // Construtores
     public TrackingEventResponse() {}
     
-    public TrackingEventResponse(String eventType, Date eventTime, String location, String voyageNumber) {
+    public TrackingEventResponse(String eventType, LocalDateTime eventTime, String location, String voyageNumber) {
         this.eventType = eventType;
-        this.eventTime = eventTime != null ? new Date(eventTime.getTime()) : null;
+        this.eventTime = eventTime; // LocalDateTime já é imutável, não precisa clonar
         this.location = location;
         this.voyageNumber = voyageNumber;
         this.description = generateDescription();
@@ -96,7 +96,7 @@ public class TrackingEventResponse {
     
     public static class Builder {
         private String eventType;
-        private Date eventTime;
+        private LocalDateTime eventTime;
         private String location;
         private String voyageNumber;
         
@@ -105,7 +105,7 @@ public class TrackingEventResponse {
             return this;
         }
         
-        public Builder eventTime(Date eventTime) {
+        public Builder eventTime(LocalDateTime eventTime) {
             this.eventTime = eventTime;
             return this;
         }
@@ -136,12 +136,12 @@ public class TrackingEventResponse {
         this.isMilestone = determineIfMilestone(eventType);
     }
     
-    public Date getEventTime() {
-        return eventTime != null ? new Date(eventTime.getTime()) : null;
+    public LocalDateTime getEventTime() {
+        return eventTime; // LocalDateTime é imutável, retorno seguro
     }
     
-    public void setEventTime(Date eventTime) {
-        this.eventTime = eventTime != null ? new Date(eventTime.getTime()) : null;
+    public void setEventTime(LocalDateTime eventTime) {
+        this.eventTime = eventTime; // Atribuição direta
     }
     
     public String getLocation() {

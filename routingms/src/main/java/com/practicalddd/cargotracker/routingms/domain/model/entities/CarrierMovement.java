@@ -2,19 +2,19 @@ package com.practicalddd.cargotracker.routingms.domain.model.entities;
 
 import com.practicalddd.cargotracker.routingms.domain.model.valueobjects.Location;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class CarrierMovement {
     private Location departureLocation;
     private Location arrivalLocation;
-    private Date departureDate;
-    private Date arrivalDate;
+    private LocalDateTime departureDate;
+    private LocalDateTime arrivalDate;
 
     public CarrierMovement() {}
 
     public CarrierMovement(Location departureLocation, Location arrivalLocation, 
-                         Date departureDate, Date arrivalDate) {
+                         LocalDateTime departureDate, LocalDateTime arrivalDate) {
         this.departureLocation = departureLocation;
         this.arrivalLocation = arrivalLocation;
         this.departureDate = departureDate;
@@ -24,8 +24,8 @@ public class CarrierMovement {
     // Getters
     public Location getDepartureLocation() { return departureLocation; }
     public Location getArrivalLocation() { return arrivalLocation; }
-    public Date getDepartureDate() { return departureDate; }
-    public Date getArrivalDate() { return arrivalDate; }
+    public LocalDateTime getDepartureDate() { return departureDate; }
+    public LocalDateTime getArrivalDate() { return arrivalDate; }
 
     @Override
     public boolean equals(Object o) {

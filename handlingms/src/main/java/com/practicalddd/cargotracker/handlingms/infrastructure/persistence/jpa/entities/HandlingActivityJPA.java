@@ -1,9 +1,10 @@
 package com.practicalddd.cargotracker.handlingms.infrastructure.persistence.jpa.entities;
 
 import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.Type;
+import com.practicalddd.cargotracker.handlingms.infrastructure.persistence.jpa.converters.LocalDateTimeConverter;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @NamedQuery(name = "HandlingActivityJPA.findByBookingId",
@@ -25,16 +26,16 @@ public class HandlingActivityJPA {
     @Column(name = "location")
     private String location;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "event_completion_time")
-    private Date completionTime;
+    @Convert(converter = LocalDateTimeConverter.class)
+    private LocalDateTime completionTime;
 
     @Column(name = "booking_id")
     private String bookingId;
 
     public HandlingActivityJPA() {}
 
-    public HandlingActivityJPA(Type type, String voyageNumber, String location, Date completionTime, String bookingId) {
+    public HandlingActivityJPA(Type type, String voyageNumber, String location, LocalDateTime completionTime, String bookingId) {
         this.type = type;
         this.voyageNumber = voyageNumber;
         this.location = location;
@@ -55,8 +56,8 @@ public class HandlingActivityJPA {
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
     
-    public Date getCompletionTime() { return completionTime; }
-    public void setCompletionTime(Date completionTime) { this.completionTime = completionTime; }
+    public LocalDateTime getCompletionTime() { return completionTime; }
+    public void setCompletionTime(LocalDateTime completionTime) { this.completionTime = completionTime; }
     
     public String getBookingId() { return bookingId; }
     public void setBookingId(String bookingId) { this.bookingId = bookingId; }

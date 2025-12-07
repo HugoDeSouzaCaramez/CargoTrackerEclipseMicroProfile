@@ -2,7 +2,7 @@ package com.practicalddd.cargotracker.bookingms.application.ports.outbound.event
 
 import com.practicalddd.cargotracker.rabbitmqadaptor.ContainsContent;
 
-public class CargoRoutedEvent implements ContainsContent<CargoRoutedEventData> {
+public class CargoRoutedIntegrationEvent implements ContainsContent<CargoRoutedEventData> {
     private CargoRoutedEventData cargoRoutedEventData;
     public void setContent(CargoRoutedEventData cargoRoutedEventData) { 
         this.cargoRoutedEventData = cargoRoutedEventData; 

@@ -9,6 +9,8 @@ import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 
+import java.time.LocalDateTime;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -22,15 +24,20 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
 
     @Inject
     private CargoRepository cargoRepository;
-    
+
     @Inject
     private DomainEventPublisher eventPublisher;
 
     @Override
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
+        // Validação adicional do comando
+        if (bookCargoCommand.getDestArrivalDeadline().isBefore(LocalDateTime.now().plusDays(1))) {
+            throw new IllegalArgumentException("Arrival deadline must be at least 24 hours from now");
+        }
+
         String bookingId = cargoRepository.nextBookingId();
-        
+
         Cargo cargo = CargoFactory.createCargo(bookCargoCommand, bookingId);
         cargoRepository.store(cargo);
 

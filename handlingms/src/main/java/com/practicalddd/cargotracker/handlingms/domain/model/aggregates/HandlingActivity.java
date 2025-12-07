@@ -2,7 +2,7 @@ package com.practicalddd.cargotracker.handlingms.domain.model.aggregates;
 
 import com.practicalddd.cargotracker.handlingms.domain.model.valueobjects.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class HandlingActivity {
 
@@ -10,27 +10,27 @@ public class HandlingActivity {
     private final Type type;
     private final VoyageNumber voyageNumber;
     private final Location location;
-    private final Date completionTime;
+    private final LocalDateTime completionTime;
 
-    public HandlingActivity(CargoBookingId cargoBookingId, Date completionTime,
+    public HandlingActivity(CargoBookingId cargoBookingId, LocalDateTime completionTime,
                           Type type, Location location, VoyageNumber voyageNumber) {
         
         validateHandlingActivity(type, voyageNumber);
         
         this.cargoBookingId = cargoBookingId;
-        this.completionTime = (Date) completionTime.clone();
+        this.completionTime = completionTime; // LocalDateTime já é imutável
         this.type = type;
         this.location = location;
         this.voyageNumber = voyageNumber;
     }
 
-    public HandlingActivity(CargoBookingId cargoBookingId, Date completionTime,
+    public HandlingActivity(CargoBookingId cargoBookingId, LocalDateTime completionTime,
                           Type type, Location location) {
         
         validateHandlingActivity(type, null);
         
         this.cargoBookingId = cargoBookingId;
-        this.completionTime = (Date) completionTime.clone();
+        this.completionTime = completionTime; // LocalDateTime já é imutável
         this.type = type;
         this.location = location;
         this.voyageNumber = null;
@@ -66,8 +66,8 @@ public class HandlingActivity {
         return this.voyageNumber;
     }
 
-    public Date getCompletionTime() {
-        return new Date(this.completionTime.getTime());
+    public LocalDateTime getCompletionTime() {
+        return this.completionTime; // LocalDateTime é imutável, retorno seguro
     }
 
     public Location getLocation() { 

@@ -6,7 +6,7 @@ import com.practicalddd.cargotracker.trackingms.domain.model.valueobjects.Tracki
 import javax.json.bind.annotation.JsonbDateFormat;
 import javax.json.bind.annotation.JsonbProperty;
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,12 +28,12 @@ public class TrackingActivityResponse {
     private int totalEvents;
     
     @JsonbProperty("createdAt")
-    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    private Date createdAt;
+    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime createdAt;
     
     @JsonbProperty("updatedAt")
-    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    private Date updatedAt;
+    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime updatedAt;
     
     @JsonbProperty("status")
     private String status;
@@ -41,7 +41,7 @@ public class TrackingActivityResponse {
     // Construtores
     public TrackingActivityResponse() {
         this.events = new ArrayList<>();
-        this.createdAt = new Date();
+        this.createdAt = LocalDateTime.now(); // Corrigido: usar now() em vez de construtor
     }
     
     public TrackingActivityResponse(String trackingNumber, String bookingId) {
@@ -111,6 +111,11 @@ public class TrackingActivityResponse {
         TrackingEventResponse lastEvent = events.get(events.size() - 1);
         String lastEventType = lastEvent.getEventType();
         
+        if (lastEventType == null) {
+            this.status = "UNKNOWN";
+            return;
+        }
+        
         switch (lastEventType.toUpperCase()) {
             case "LOADED":
                 this.status = "IN_TRANSIT";
@@ -141,8 +146,8 @@ public class TrackingActivityResponse {
         private String trackingNumber;
         private String bookingId;
         private List<TrackingEventResponse> events = new ArrayList<>();
-        private Date createdAt;
-        private Date updatedAt;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
         
         public Builder trackingNumber(String trackingNumber) {
             this.trackingNumber = trackingNumber;
@@ -164,12 +169,12 @@ public class TrackingActivityResponse {
             return this;
         }
         
-        public Builder createdAt(Date createdAt) {
+        public Builder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
         }
         
-        public Builder updatedAt(Date updatedAt) {
+        public Builder updatedAt(LocalDateTime updatedAt) {
             this.updatedAt = updatedAt;
             return this;
         }
@@ -237,20 +242,20 @@ public class TrackingActivityResponse {
         this.totalEvents = totalEvents;
     }
     
-    public Date getCreatedAt() {
-        return createdAt != null ? new Date(createdAt.getTime()) : null;
+    public LocalDateTime getCreatedAt() {
+        return createdAt; // LocalDateTime é imutável, retorno seguro
     }
     
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt != null ? new Date(createdAt.getTime()) : null;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt; // Atribuição direta
     }
     
-    public Date getUpdatedAt() {
-        return updatedAt != null ? new Date(updatedAt.getTime()) : null;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt; // LocalDateTime é imutável, retorno seguro
     }
     
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt != null ? new Date(updatedAt.getTime()) : null;
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt; // Atribuição direta
     }
     
     public String getStatus() {

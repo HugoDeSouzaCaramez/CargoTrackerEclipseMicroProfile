@@ -1,10 +1,10 @@
 package com.practicalddd.cargotracker.trackingms.domain.model.commands;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class AddTrackingEventCommand {
     private String bookingId;
-    private Date eventTime;
+    private LocalDateTime eventTime;
     private String eventType;
     private String location;
     private String voyageNumber;
@@ -12,7 +12,7 @@ public class AddTrackingEventCommand {
 
     public AddTrackingEventCommand(){}
 
-    public AddTrackingEventCommand(String bookingId, Date eventTime,String eventType,String location,String voyageNumber){
+    public AddTrackingEventCommand(String bookingId, LocalDateTime eventTime,String eventType,String location,String voyageNumber){
         this.bookingId = bookingId;
         this.eventTime = eventTime;
         this.eventType = eventType;
@@ -26,8 +26,8 @@ public class AddTrackingEventCommand {
     public void setEventType(String eventType){this.eventType = eventType;}
     public String getEventType(){return this.eventType;}
 
-    public void setEventTime(Date eventTime){this.eventTime = eventTime;}
-    public Date getEventTime(){return this.eventTime;}
+    public void setEventTime(LocalDateTime eventTime){this.eventTime = eventTime;}
+    public LocalDateTime getEventTime(){return this.eventTime;}
 
     public void setLocation(String location){this.location = location;}
     public String getLocation(){return this.location;}

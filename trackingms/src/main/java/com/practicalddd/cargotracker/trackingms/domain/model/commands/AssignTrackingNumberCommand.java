@@ -1,6 +1,5 @@
 package com.practicalddd.cargotracker.trackingms.domain.model.commands;
 
-import java.util.Date;
 
 public class AssignTrackingNumberCommand {
     private String bookingId;

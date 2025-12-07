@@ -8,6 +8,7 @@
   <persistence-unit name="handlingms" transaction-type="JTA">
     <jta-data-source>handlingms</jta-data-source>
     <class>com.practicalddd.cargotracker.handlingms.infrastructure.persistence.jpa.entities.HandlingActivityJPA</class>
+    <class>com.practicalddd.cargotracker.handlingms.infrastructure.persistence.jpa.converters.LocalDateTimeConverter</class>
     <properties>
       <property name="eclipselink.ddl-generation" value="create-tables"/>
       <property name="eclipselink.ddl-generation.output-mode" value="database"/>

@@ -1,17 +1,17 @@
 package com.practicalddd.cargotracker.handlingms.domain.model.commands;
 
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class HandlingActivityRegistrationCommand {
 
-    private Date completionTime;
+    private LocalDateTime completionTime;
     private String bookingId;
     private String voyageNumber;
     private String unLocode;
     private String handlingType;
 
-    public HandlingActivityRegistrationCommand(String bookingId, String voyageNumber, String unLocode, String handlingType, Date completionTime){
+    public HandlingActivityRegistrationCommand(String bookingId, String voyageNumber, String unLocode, String handlingType, LocalDateTime completionTime){
         this.setCompletionTime(completionTime);
         this.setBookingId(bookingId);
         this.setVoyageNumber(voyageNumber);
@@ -19,11 +19,11 @@ public class HandlingActivityRegistrationCommand {
         this.setHandlingType(handlingType);
     }
 
-    public Date getCompletionTime() {
+    public LocalDateTime getCompletionTime() {
         return completionTime;
     }
 
-    public void setCompletionTime(Date completionTime) {
+    public void setCompletionTime(LocalDateTime completionTime) {
         this.completionTime = completionTime;
     }
 

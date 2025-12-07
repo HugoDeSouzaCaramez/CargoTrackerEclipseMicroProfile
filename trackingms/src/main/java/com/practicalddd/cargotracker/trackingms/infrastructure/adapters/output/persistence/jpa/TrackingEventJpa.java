@@ -1,8 +1,10 @@
 package com.practicalddd.cargotracker.trackingms.infrastructure.adapters.output.persistence.jpa;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
+
+import com.practicalddd.cargotracker.trackingms.infrastructure.persistence.jpa.converters.LocalDateTimeConverter;
 
 @Entity
 @Table(name = "tracking_handling_events")
@@ -31,16 +33,16 @@ public class TrackingEventJpa {
     private String eventType;
     
     @Column(name = "event_time", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date eventTime;
+    @Convert(converter = LocalDateTimeConverter.class)
+    private LocalDateTime eventTime;
     
     @Column(name = "created_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    @Convert(converter = LocalDateTimeConverter.class)
+    private LocalDateTime createdAt;
     
     @Column(name = "updated_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt;
+    @Convert(converter = LocalDateTimeConverter.class)
+    private LocalDateTime updatedAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tracking_activity_id", insertable = false, updatable = false)
@@ -48,15 +50,15 @@ public class TrackingEventJpa {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = new Date();
+        this.createdAt = LocalDateTime.now();
         if (this.eventTime == null) {
-            this.eventTime = new Date();
+            this.eventTime = LocalDateTime.now();
         }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = new Date();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public TrackingEventJpa() {
@@ -64,12 +66,12 @@ public class TrackingEventJpa {
     }
 
     public TrackingEventJpa(String bookingId, String voyageNumber, String location, 
-                           String eventType, Date eventTime) {
+                           String eventType, LocalDateTime eventTime) {
         this.bookingId = bookingId;
         this.voyageNumber = voyageNumber;
         this.location = location;
         this.eventType = eventType;
-        this.eventTime = eventTime != null ? new Date(eventTime.getTime()) : new Date();
+        this.eventTime = eventTime != null ? eventTime : LocalDateTime.now();
     }
 
     public Long getId() {
@@ -112,20 +114,28 @@ public class TrackingEventJpa {
         this.eventType = eventType;
     }
 
-    public Date getEventTime() {
-        return eventTime != null ? new Date(eventTime.getTime()) : null;
+    public LocalDateTime getEventTime() {
+        return eventTime;
     }
 
-    public void setEventTime(Date eventTime) {
-        this.eventTime = eventTime != null ? new Date(eventTime.getTime()) : null;
+    public void setEventTime(LocalDateTime eventTime) {
+        this.eventTime = eventTime;
     }
 
-    public Date getCreatedAt() {
-        return createdAt != null ? new Date(createdAt.getTime()) : null;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public Date getUpdatedAt() {
-        return updatedAt != null ? new Date(updatedAt.getTime()) : null;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public TrackingActivityJpa getTrackingActivity() {

@@ -1,20 +1,40 @@
 package com.practicalddd.cargotracker.shareddomain.model;
 
-import java.io.Serializable;
-import java.util.Date;
+import com.practicalddd.cargotracker.shareddomain.adapters.LocalDateTimeAdapter;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+@XmlRootElement(name = "transitEdge")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class TransitEdge implements Serializable {
 
+    @XmlElement(name = "voyageNumber")
     private String voyageNumber;
+    
+    @XmlElement(name = "fromUnLocode")
     private String fromUnLocode;
+    
+    @XmlElement(name = "toUnLocode")
     private String toUnLocode;
-    private Date fromDate;
-    private Date toDate;
+    
+    @XmlElement(name = "fromDate")
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime fromDate;
+    
+    @XmlElement(name = "toDate")
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime toDate;
 
     public TransitEdge() {}
 
     public TransitEdge(String voyageNumber, String fromUnLocode,
-            String toUnLocode, Date fromDate, Date toDate) {
+            String toUnLocode, LocalDateTime fromDate, LocalDateTime toDate) {
         this.voyageNumber = voyageNumber;
         this.fromUnLocode = fromUnLocode;
         this.toUnLocode = toUnLocode;
@@ -46,19 +66,19 @@ public class TransitEdge implements Serializable {
         this.toUnLocode = toUnLocode;
     }
 
-    public Date getFromDate() {
+    public LocalDateTime getFromDate() {
         return fromDate;
     }
 
-    public void setFromDate(Date fromDate) {
+    public void setFromDate(LocalDateTime fromDate) {
         this.fromDate = fromDate;
     }
 
-    public Date getToDate() {
+    public LocalDateTime getToDate() {
         return toDate;
     }
 
-    public void setToDate(Date toDate) {
+    public void setToDate(LocalDateTime toDate) {
         this.toDate = toDate;
     }
 

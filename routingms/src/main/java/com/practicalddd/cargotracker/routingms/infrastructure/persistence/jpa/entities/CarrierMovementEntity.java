@@ -1,7 +1,10 @@
 package com.practicalddd.cargotracker.routingms.infrastructure.persistence.jpa.entities;
 
 import javax.persistence.*;
-import java.util.Date;
+
+import com.practicalddd.cargotracker.routingms.infrastructure.persistence.jpa.converters.LocalDateTimeConverter;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -19,14 +22,13 @@ public class CarrierMovementEntity {
 
     @Column(name = "unload_location")
     private String unloadLocation;
-
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "load_time")
-    private Date loadTime;
+    @Convert(converter = LocalDateTimeConverter.class)
+    private LocalDateTime loadTime;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "unload_time")
-    private Date unloadTime;
+    @Convert(converter = LocalDateTimeConverter.class)
+    private LocalDateTime unloadTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voyage_id")
@@ -37,7 +39,7 @@ public class CarrierMovementEntity {
     }
 
     public CarrierMovementEntity(String voyageNumber, String loadLocation, String unloadLocation,
-            Date loadTime, Date unloadTime) {
+            LocalDateTime loadTime, LocalDateTime unloadTime) {
         this.voyageNumber = voyageNumber;
         this.loadLocation = loadLocation;
         this.unloadLocation = unloadLocation;
@@ -78,19 +80,19 @@ public class CarrierMovementEntity {
         this.unloadLocation = unloadLocation;
     }
 
-    public Date getLoadTime() {
+    public LocalDateTime getLoadTime() {
         return loadTime;
     }
 
-    public void setLoadTime(Date loadTime) {
+    public void setLoadTime(LocalDateTime loadTime) {
         this.loadTime = loadTime;
     }
 
-    public Date getUnloadTime() {
+    public LocalDateTime getUnloadTime() {
         return unloadTime;
     }
 
-    public void setUnloadTime(Date unloadTime) {
+    public void setUnloadTime(LocalDateTime unloadTime) {
         this.unloadTime = unloadTime;
     }
 

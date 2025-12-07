@@ -1,14 +1,14 @@
 package com.practicalddd.cargotracker.trackingms.domain.model.valueobjects;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class TrackingEventType {
     
     private final String eventType;
-    private final Date eventTime;
+    private final LocalDateTime eventTime;
 
-    public TrackingEventType(String eventType, Date eventTime) {
+    public TrackingEventType(String eventType, LocalDateTime eventTime) {
         if (eventType == null || eventType.trim().isEmpty()) {
             throw new IllegalArgumentException("Event type cannot be null or empty");
         }
@@ -16,15 +16,15 @@ public class TrackingEventType {
             throw new IllegalArgumentException("Event time cannot be null");
         }
         this.eventType = eventType;
-        this.eventTime = new Date(eventTime.getTime()); // Defensive copy
+        this.eventTime = eventTime; // LocalDateTime já é imutável, não precisa de cópia defensiva
     }
 
     public String getEventType() {
         return eventType;
     }
 
-    public Date getEventTime() {
-        return new Date(eventTime.getTime()); // Defensive copy
+    public LocalDateTime getEventTime() {
+        return eventTime; // LocalDateTime é imutável, retorno seguro
     }
 
     @Override
@@ -39,5 +39,13 @@ public class TrackingEventType {
     @Override
     public int hashCode() {
         return Objects.hash(eventType, eventTime);
+    }
+    
+    @Override
+    public String toString() {
+        return "TrackingEventType{" +
+                "eventType='" + eventType + '\'' +
+                ", eventTime=" + eventTime +
+                '}';
     }
 }

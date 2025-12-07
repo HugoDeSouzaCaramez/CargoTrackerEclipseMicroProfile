@@ -1,6 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.events.rabbitmq;
 
 import com.practicalddd.cargotracker.bookingms.application.internal.events.DomainEventPublisher;
+import com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedIntegrationEvent;
+import com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedEventData;
+import com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedIntegrationEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoRoutedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.DomainEvent;
@@ -13,25 +16,25 @@ import javax.inject.Inject;
 public class RabbitMQDomainEventPublisher implements DomainEventPublisher {
     
     @Inject
-    private Event<com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedEvent> cargoBookedEventControl;
+    private Event<CargoBookedIntegrationEvent> cargoBookedEventControl;
     
     @Inject
-    private Event<com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedEvent> cargoRoutedEventControl;
+    private Event<CargoRoutedIntegrationEvent> cargoRoutedEventControl;
 
     @Override
     public void publish(DomainEvent event) {
         if (event instanceof CargoBookedEvent) {
             CargoBookedEvent domainEvent = (CargoBookedEvent) event;
-            com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedEvent infraEvent = 
-                new com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedEvent();
+            CargoBookedIntegrationEvent infraEvent = 
+                new CargoBookedIntegrationEvent();
             infraEvent.setId(domainEvent.getBookingId());
             cargoBookedEventControl.fire(infraEvent);
         } else if (event instanceof CargoRoutedEvent) {
             CargoRoutedEvent domainEvent = (CargoRoutedEvent) event;
-            com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedEvent infraEvent = 
-                new com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedEvent();
-            com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedEventData eventData = 
-                new com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoRoutedEventData();
+            CargoRoutedIntegrationEvent infraEvent = 
+                new CargoRoutedIntegrationEvent();
+            CargoRoutedEventData eventData = 
+                new CargoRoutedEventData();
             eventData.setBookingId(domainEvent.getBookingId());
             infraEvent.setContent(eventData);
             cargoRoutedEventControl.fire(infraEvent);

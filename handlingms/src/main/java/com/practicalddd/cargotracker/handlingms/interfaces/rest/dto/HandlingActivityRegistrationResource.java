@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.handlingms.interfaces.rest.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class HandlingActivityRegistrationResource {
 
@@ -8,11 +8,11 @@ public class HandlingActivityRegistrationResource {
     private String voyageNumber;
     private String unLocode;
     private String handlingType;
-    private LocalDate completionTime;
+    private LocalDateTime completionTime;
 
     public HandlingActivityRegistrationResource(){}
 
-    public HandlingActivityRegistrationResource(String bookingId, String voyageNumber, String unLocode, String handlingType, LocalDate completionTime){
+    public HandlingActivityRegistrationResource(String bookingId, String voyageNumber, String unLocode, String handlingType, LocalDateTime completionTime){
         this.setBookingId(bookingId);
         this.setVoyageNumber(voyageNumber);
         this.setUnLocode(unLocode);
@@ -52,11 +52,11 @@ public class HandlingActivityRegistrationResource {
         this.handlingType = handlingType;
     }
 
-    public LocalDate getCompletionTime() {
+    public LocalDateTime getCompletionTime() {
         return completionTime;
     }
 
-    public void setCompletionTime(LocalDate completionTime) {
+    public void setCompletionTime(LocalDateTime completionTime) {
         this.completionTime = completionTime;
     }
 }

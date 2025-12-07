@@ -13,9 +13,9 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
-import java.util.Calendar;
 
 @ApplicationScoped
 public class VoyageDataSeeder {
@@ -46,8 +46,8 @@ public class VoyageDataSeeder {
                 new CarrierMovement(
                     new Location("CNHKG"),
                     new Location("USNYC"),
-                    createDate(2024, Calendar.OCTOBER, 1),
-                    createDate(2024, Calendar.OCTOBER, 20)
+                    createDateTime(2024, 10, 1),  // Outubro 1, 2024
+                    createDateTime(2024, 10, 20) // Outubro 20, 2024
                 )
             ))
         );
@@ -60,8 +60,8 @@ public class VoyageDataSeeder {
                 new CarrierMovement(
                     new Location("CNSHA"),
                     new Location("USLAX"),
-                    createDate(2024, Calendar.OCTOBER, 5),
-                    createDate(2024, Calendar.OCTOBER, 22)
+                    createDateTime(2024, 10, 5),  // Outubro 5, 2024
+                    createDateTime(2024, 10, 22) // Outubro 22, 2024
                 )
             ))
         );
@@ -74,8 +74,8 @@ public class VoyageDataSeeder {
                 new CarrierMovement(
                     new Location("SGSIN"),
                     new Location("NLRTM"),
-                    createDate(2024, Calendar.OCTOBER, 10),
-                    createDate(2024, Calendar.OCTOBER, 25)
+                    createDateTime(2024, 10, 10), // Outubro 10, 2024
+                    createDateTime(2024, 10, 25) // Outubro 25, 2024
                 )
             ))
         );
@@ -88,20 +88,20 @@ public class VoyageDataSeeder {
                 new CarrierMovement(
                     new Location("CNHKG"),
                     new Location("SGSIN"),
-                    createDate(2024, Calendar.OCTOBER, 2),
-                    createDate(2024, Calendar.OCTOBER, 5)
+                    createDateTime(2024, 10, 2),  // Outubro 2, 2024
+                    createDateTime(2024, 10, 5)   // Outubro 5, 2024
                 ),
                 new CarrierMovement(
                     new Location("SGSIN"),
                     new Location("NLRTM"),
-                    createDate(2024, Calendar.OCTOBER, 6),
-                    createDate(2024, Calendar.OCTOBER, 20)
+                    createDateTime(2024, 10, 6),  // Outubro 6, 2024
+                    createDateTime(2024, 10, 20)  // Outubro 20, 2024
                 ),
                 new CarrierMovement(
                     new Location("NLRTM"),
                     new Location("USNYC"),
-                    createDate(2024, Calendar.OCTOBER, 21),
-                    createDate(2024, Calendar.OCTOBER, 28)
+                    createDateTime(2024, 10, 21), // Outubro 21, 2024
+                    createDateTime(2024, 10, 28)  // Outubro 28, 2024
                 )
             ))
         );
@@ -114,9 +114,11 @@ public class VoyageDataSeeder {
         }
     }
 
-    private Date createDate(int year, int month, int day) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, month, day, 12, 0, 0);
-        return calendar.getTime();
+    private LocalDateTime createDateTime(int year, int month, int day) {
+        return LocalDateTime.of(year, month, day, 12, 0, 0);
+    }
+    
+    private LocalDateTime createDateTime(int year, Month month, int day) {
+        return LocalDateTime.of(year, month, day, 12, 0, 0);
     }
 }

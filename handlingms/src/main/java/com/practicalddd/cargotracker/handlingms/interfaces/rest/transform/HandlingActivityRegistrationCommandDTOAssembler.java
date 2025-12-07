@@ -5,14 +5,15 @@ import com.practicalddd.cargotracker.handlingms.interfaces.rest.dto.HandlingActi
 
 public class HandlingActivityRegistrationCommandDTOAssembler {
 
-    public static HandlingActivityRegistrationCommand toCommandFromDTO(HandlingActivityRegistrationResource handlingActivityRegistrationResource){
-
+    public static HandlingActivityRegistrationCommand toCommandFromDTO(
+            HandlingActivityRegistrationResource handlingActivityRegistrationResource) {
+        
         return new HandlingActivityRegistrationCommand(
                 handlingActivityRegistrationResource.getBookingId(),
                 handlingActivityRegistrationResource.getVoyageNumber(),
                 handlingActivityRegistrationResource.getUnLocode(),
                 handlingActivityRegistrationResource.getHandlingType(),
-                java.sql.Date.valueOf(handlingActivityRegistrationResource.getCompletionTime())
+                handlingActivityRegistrationResource.getCompletionTime()
         );
     }
 }

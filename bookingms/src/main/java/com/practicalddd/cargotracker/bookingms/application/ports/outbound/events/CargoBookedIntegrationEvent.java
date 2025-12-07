@@ -2,7 +2,7 @@ package com.practicalddd.cargotracker.bookingms.application.ports.outbound.event
 
 import com.practicalddd.cargotracker.rabbitmqadaptor.ContainsId;
 
-public class CargoBookedEvent implements ContainsId<String> {
+public class CargoBookedIntegrationEvent implements ContainsId<String> {
     private String id;
     public void setId(String id) {
         this.id = id;

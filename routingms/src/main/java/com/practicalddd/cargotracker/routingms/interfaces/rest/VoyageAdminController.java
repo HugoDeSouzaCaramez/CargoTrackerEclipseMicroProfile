@@ -13,7 +13,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Calendar;
 import java.util.logging.Logger;
@@ -104,7 +104,7 @@ public class VoyageAdminController {
         public String voyageNumber;
         public String departureLocation;
         public String arrivalLocation;
-        public Date departureDate;
-        public Date arrivalDate;
+        public LocalDateTime departureDate;
+        public LocalDateTime arrivalDate;
     }
 }

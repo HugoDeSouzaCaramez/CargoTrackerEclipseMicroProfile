@@ -12,9 +12,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 @ApplicationScoped
@@ -65,35 +64,36 @@ public class DataInitializer {
     private void createSampleVoyages() {
         // Voyage de Tokyo para Singapore
         Voyage voyage1 = createVoyage("V0100", "JPTYO", "SGSIN",
-                createDate(2024, Calendar.JANUARY, 10),
-                createDate(2024, Calendar.JANUARY, 14));
+                createDateTime(2024, 1, 10),  // Janeiro 10, 2024
+                createDateTime(2024, 1, 14)); // Janeiro 14, 2024
         voyageRepository.store(voyage1);
 
         // Voyage de Tokyo para Singapore (alternativo)
         Voyage voyage2 = createVoyage("V0200", "JPTYO", "SGSIN",
-                createDate(2024, Calendar.JANUARY, 12),
-                createDate(2024, Calendar.JANUARY, 16));
+                createDateTime(2024, 1, 12),  // Janeiro 12, 2024
+                createDateTime(2024, 1, 16)); // Janeiro 16, 2024
         voyageRepository.store(voyage2);
 
         // Voyage de Singapore para Tokyo
         Voyage voyage3 = createVoyage("V0300", "SGSIN", "JPTYO",
-                createDate(2024, Calendar.JANUARY, 20),
-                createDate(2024, Calendar.JANUARY, 24));
+                createDateTime(2024, 1, 20),  // Janeiro 20, 2024
+                createDateTime(2024, 1, 24)); // Janeiro 24, 2024
         voyageRepository.store(voyage3);
 
         // Outras rotas comuns
         Voyage voyage4 = createVoyage("V0400", "USNYC", "GBLON",
-                createDate(2024, Calendar.JANUARY, 5),
-                createDate(2024, Calendar.JANUARY, 6));
+                createDateTime(2024, 1, 5),   // Janeiro 5, 2024
+                createDateTime(2024, 1, 6));  // Janeiro 6, 2024
         voyageRepository.store(voyage4);
 
         Voyage voyage5 = createVoyage("V0500", "CNHKG", "JPTYO",
-                createDate(2024, Calendar.JANUARY, 8),
-                createDate(2024, Calendar.JANUARY, 10));
+                createDateTime(2024, 1, 8),   // Janeiro 8, 2024
+                createDateTime(2024, 1, 10)); // Janeiro 10, 2024
         voyageRepository.store(voyage5);
     }
 
-    private Voyage createVoyage(String voyageNumber, String from, String to, Date departure, Date arrival) {
+    private Voyage createVoyage(String voyageNumber, String from, String to, 
+                               LocalDateTime departure, LocalDateTime arrival) {
         List<CarrierMovement> carrierMovements = new ArrayList<>();
         carrierMovements.add(new CarrierMovement(
                 new Location(from),
@@ -104,10 +104,8 @@ public class DataInitializer {
         return new Voyage(new VoyageNumber(voyageNumber), schedule);
     }
 
-    private Date createDate(int year, int month, int day) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, month, day, 12, 0, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTime();
+    private LocalDateTime createDateTime(int year, int month, int day) {
+        // Mês: 1-12 (janeiro=1, dezembro=12)
+        return LocalDateTime.of(year, month, day, 12, 0, 0);
     }
 }

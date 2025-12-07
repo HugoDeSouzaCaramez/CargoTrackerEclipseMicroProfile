@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.brokers.rabbitmq;
 
-import com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedEvent;
+import com.practicalddd.cargotracker.bookingms.application.ports.outbound.events.CargoBookedIntegrationEvent;
 import com.practicalddd.cargotracker.rabbitmqadaptor.EventBinder;
 
 import javax.annotation.PostConstruct;
@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 public class BookingEventBinder extends EventBinder {
 
     protected void bindEvents(){
-        bind(CargoBookedEvent.class).toExchange("cargotracker.cargobookings")
+        bind(CargoBookedIntegrationEvent.class).toExchange("cargotracker.cargobookings")
                 .withRoutingKey("cargobookings")
                 .withPersistentMessages()
                 .withPublisherConfirms();

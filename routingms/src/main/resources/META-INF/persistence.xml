@@ -5,11 +5,13 @@
     <jta-data-source>routingms</jta-data-source>
     <class>com.practicalddd.cargotracker.routingms.infrastructure.persistence.jpa.entities.VoyageEntity</class>
     <class>com.practicalddd.cargotracker.routingms.infrastructure.persistence.jpa.entities.CarrierMovementEntity</class>
+    <class>com.practicalddd.cargotracker.routingms.infrastructure.persistence.jpa.converters.LocalDateTimeConverter</class>
     <properties>
       <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
       <property name="eclipselink.ddl-generation.output-mode" value="database"/>
       <property name="eclipselink.deploy-on-startup" value="true"/>
       <property name="eclipselink.logging.parameters" value="true"/>
+      <property name="eclipselink.jdbc.time-zone" value="UTC"/>
     </properties>
   </persistence-unit>
 </persistence>

@@ -6,9 +6,9 @@ import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Locatio
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.RouteSpecification;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Voyage;
 import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.ExternalCargoRoutingClient;
+import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.dto.TransitEdgeDTO;
+import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.dto.TransitPathDTO;
 import com.practicalddd.cargotracker.bookingms.application.ports.outbound.ExternalRoutingService;
-import com.practicalddd.cargotracker.bookingms.application.shared.model.TransitEdge;
-import com.practicalddd.cargotracker.bookingms.application.shared.model.TransitPath;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -23,20 +23,29 @@ public class ExternalRoutingServiceImpl implements ExternalRoutingService {
 
     @Override
     public CargoItinerary fetchRouteForSpecification(RouteSpecification routeSpecification) {
-        TransitPath transitPath = externalCargoRoutingClient.findOptimalRoute(
+        // Converter LocalDateTime para String ISO
+        String deadlineString = routeSpecification.getArrivalDeadline().toString();
+
+        TransitPathDTO transitPath = externalCargoRoutingClient.findOptimalRoute(
                 routeSpecification.getOrigin().getUnLocCode(),
                 routeSpecification.getDestination().getUnLocCode(),
-                routeSpecification.getArrivalDeadline().toString());
+                deadlineString);
 
         List<Leg> legs = new ArrayList<>(transitPath.getTransitEdges().size());
-        for (TransitEdge edge : transitPath.getTransitEdges()) {
-            legs.add(toLeg(edge));
+        for (TransitEdgeDTO edge : transitPath.getTransitEdges()) {
+            legs.add(new Leg(
+                    new Voyage(edge.getVoyageNumber()),
+                    new Location(edge.getFromUnLocode()),
+                    new Location(edge.getToUnLocode()),
+                    edge.getFromDate(),
+                    edge.getToDate()
+            ));
         }
 
         return new CargoItinerary(legs);
     }
 
-    private Leg toLeg(TransitEdge edge) {
+    private Leg toLeg(TransitEdgeDTO edge) {
         return new Leg(
                 new Voyage(edge.getVoyageNumber()),
                 new Location(edge.getFromUnLocode()),

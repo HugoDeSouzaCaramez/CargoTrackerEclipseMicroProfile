@@ -1,6 +1,5 @@
 package com.practicalddd.cargotracker.rabbitmqadaptor;
 
-
 import com.practicalddd.cargotracker.rabbitmqadaptor.publisher.DeliveryOptions;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -10,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class Message {
@@ -118,14 +119,40 @@ public class Message {
                 .build();
         return this;
     }
+    
+    /**
+     * Adiciona timestamp a partir de LocalDateTime
+     */
+    public Message timestamp(LocalDateTime dateTime) {
+        Date timestamp = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+        basicProperties = basicProperties.builder()
+                .timestamp(timestamp)
+                .build();
+        return this;
+    }
+    
+    /**
+     * Adiciona timestamp atual
+     */
+    public Message withCurrentTimestamp() {
+        Date timestamp = new Date(); // Data/hora atual
+        basicProperties = basicProperties.builder()
+                .timestamp(timestamp)
+                .build();
+        return this;
+    }
 
     public void publish(Channel channel) throws IOException{
         publish(channel, DeliveryOptions.NONE);
     }
 
     public void publish(Channel channel, DeliveryOptions deliveryOptions) throws IOException {
+        // Se não houver timestamp, adiciona o timestamp atual
         if (basicProperties.getTimestamp() == null) {
-            basicProperties.builder().timestamp(new Date());
+            Date timestamp = new Date(); // Data/hora atual como Date
+            basicProperties = basicProperties.builder()
+                    .timestamp(timestamp)
+                    .build();
         }
 
         boolean mandatory = deliveryOptions == DeliveryOptions.MANDATORY;

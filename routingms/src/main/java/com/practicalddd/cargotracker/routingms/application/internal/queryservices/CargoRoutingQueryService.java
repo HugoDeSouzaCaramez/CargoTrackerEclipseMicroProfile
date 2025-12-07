@@ -10,7 +10,7 @@ import com.practicalddd.cargotracker.shareddomain.model.TransitPath;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,7 @@ public class CargoRoutingQueryService {
         return voyageRepository.findAll();
     }
 
-    public TransitPath findOptimalRoute(String origin, String destination, Date deadline) {
+    public TransitPath findOptimalRoute(String origin, String destination, LocalDateTime deadline) {
         List<Voyage> availableVoyages = routeFindingService.findAvailableVoyages(
             new Location(origin), 
             new Location(destination), 
