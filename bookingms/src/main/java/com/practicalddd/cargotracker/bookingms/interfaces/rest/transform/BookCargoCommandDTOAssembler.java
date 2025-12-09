@@ -5,6 +5,8 @@ import com.practicalddd.cargotracker.bookingms.interfaces.rest.dto.BookCargoReso
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BookCargoCommandDTOAssembler {
 
@@ -25,6 +27,17 @@ public class BookCargoCommandDTOAssembler {
             bookCargoResource.getDestLocation(),
             deadlineDateTime
         );
+    }
+    
+    // Novo método para converter lista
+    public static List<BookCargoCommand> toCommandListFromDTO(List<BookCargoResource> resources) {
+        if (resources == null) {
+            throw new IllegalArgumentException("BookCargoResources cannot be null");
+        }
+        
+        return resources.stream()
+                .map(BookCargoCommandDTOAssembler::toCommandFromDTO)
+                .collect(Collectors.toList());
     }
     
     private static void validateResource(BookCargoResource resource) {
