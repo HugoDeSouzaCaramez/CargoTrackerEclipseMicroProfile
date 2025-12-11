@@ -6,6 +6,7 @@ import com.practicalddd.cargotracker.bookingms.application.ports.outbound.Extern
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoRoutedEvent;
+import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.CargoNotFoundException;
 import com.practicalddd.cargotracker.bookingms.domain.model.exceptions.RouteNotFoundException;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
@@ -57,10 +58,26 @@ public class RouteCargoCommandService implements CargoRoutingCommandPort {
                     cargo.getRouteSpecification().getDestination().getUnLocCode());
         }
 
+        String oldStatus = cargo.getStatus().name();
         cargo.assignToRoute(cargoItinerary);
         cargoRepository.store(cargo);
+        String newStatus = cargo.getStatus().name();
 
-        eventPublisher.publish(new CargoRoutedEvent(routeCargoCommand.getCargoBookingId()));
+        // Publica evento de domínio enriquecido
+        int legCount = cargoItinerary != null ? cargoItinerary.getLegs().size() : 0;
+        eventPublisher.publish(new CargoRoutedEvent(
+            routeCargoCommand.getCargoBookingId(),
+            legCount,
+            LocalDateTime.now()
+        ));
+        
+        // Publica evento de mudança de status
+        eventPublisher.publish(new CargoStatusChangedEvent(
+            routeCargoCommand.getCargoBookingId(),
+            oldStatus,
+            newStatus,
+            "Route assigned with " + legCount + " legs"
+        ));
     }
 
     /**
@@ -85,10 +102,26 @@ public class RouteCargoCommandService implements CargoRoutingCommandPort {
                             cargo.getRouteSpecification().getDestination().getUnLocCode());
                 }
 
+                String oldStatus = cargo.getStatus().name();
                 cargo.assignToRoute(cargoItinerary);
                 cargoRepository.store(cargo);
+                String newStatus = cargo.getStatus().name();
 
-                eventPublisher.publish(new CargoRoutedEvent(routeCargoCommand.getCargoBookingId()));
+                // Publica evento de domínio enriquecido
+                int legCount = cargoItinerary != null ? cargoItinerary.getLegs().size() : 0;
+                eventPublisher.publish(new CargoRoutedEvent(
+                    routeCargoCommand.getCargoBookingId(),
+                    legCount,
+                    LocalDateTime.now()
+                ));
+                
+                // Publica evento de mudança de status
+                eventPublisher.publish(new CargoStatusChangedEvent(
+                    routeCargoCommand.getCargoBookingId(),
+                    oldStatus,
+                    newStatus,
+                    "Route assigned with " + legCount + " legs"
+                ));
             });
         } catch (CargoNotFoundException | RouteNotFoundException e) {
             throw e;

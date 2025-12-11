@@ -8,6 +8,7 @@ import com.practicalddd.cargotracker.bookingms.application.ports.outbound.Notifi
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoBookedEvent;
+import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
@@ -81,8 +82,22 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
         Cargo cargo = CargoFactory.createCargo(bookCargoCommand, bookingId);
         cargoRepository.store(cargo);
 
-        // Publica evento de domínio
-        eventPublisher.publish(new CargoBookedEvent(bookingId));
+        // Publica evento de domínio enriquecido
+        eventPublisher.publish(new CargoBookedEvent(
+            bookingId,
+            bookCargoCommand.getBookingAmount(),
+            bookCargoCommand.getOriginLocation(),
+            bookCargoCommand.getDestLocation(),
+            bookCargoCommand.getDestArrivalDeadline()
+        ));
+        
+        // Publica evento de status
+        eventPublisher.publish(new CargoStatusChangedEvent(
+            bookingId,
+            null,
+            "BOOKED",
+            "Cargo booked with amount: " + bookCargoCommand.getBookingAmount()
+        ));
         
         // 1. Calcular tarifa
         try {
@@ -187,7 +202,22 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
                 Cargo cargo = CargoFactory.createCargo(bookCargoCommand, bookingId);
                 cargoRepository.store(cargo);
 
-                eventPublisher.publish(new CargoBookedEvent(bookingId));
+                // Publica evento de domínio enriquecido
+                eventPublisher.publish(new CargoBookedEvent(
+                    bookingId,
+                    bookCargoCommand.getBookingAmount(),
+                    bookCargoCommand.getOriginLocation(),
+                    bookCargoCommand.getDestLocation(),
+                    bookCargoCommand.getDestArrivalDeadline()
+                ));
+                
+                // Publica evento de status
+                eventPublisher.publish(new CargoStatusChangedEvent(
+                    bookingId,
+                    null,
+                    "BOOKED",
+                    "Cargo booked with explicit transaction"
+                ));
 
                 
                 // Calcular tarifa

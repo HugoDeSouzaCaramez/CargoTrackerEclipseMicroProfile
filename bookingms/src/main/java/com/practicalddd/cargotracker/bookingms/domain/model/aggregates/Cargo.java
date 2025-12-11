@@ -1,9 +1,11 @@
 package com.practicalddd.cargotracker.bookingms.domain.model.aggregates;
 
+import com.practicalddd.cargotracker.bookingms.application.internal.events.DomainEventPublisher;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.entities.Leg;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.*;
 
+import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,9 @@ public class Cargo {
     private CargoItinerary itinerary;
     private Delivery delivery;
     private CargoStatus status;
+    
+    @Inject
+    private DomainEventPublisher eventPublisher;
 
     public Cargo(BookCargoCommand bookCargoCommand) {
         validateBookingCommand(bookCargoCommand);
@@ -54,9 +59,20 @@ public class Cargo {
         // Validar que o itinerário é temporalmente viável
         validateItineraryTemporalFeasibility(cargoItinerary);
         
+        String oldStatus = this.status.name();
         this.itinerary = cargoItinerary;
         this.delivery = this.delivery.updateOnRouting(this.routeSpecification, this.itinerary);
         this.status = CargoStatus.ROUTED;
+        
+        // Emitir evento de status
+        if (eventPublisher != null) {
+            eventPublisher.publish(new com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent(
+                this.bookingId.getBookingId(),
+                oldStatus,
+                this.status.name(),
+                "Route assigned with " + cargoItinerary.getLegs().size() + " legs"
+            ));
+        }
     }
 
     public void deriveDeliveryProgress(LastCargoHandledEvent lastCargoHandledEvent) {
@@ -94,14 +110,38 @@ public class Cargo {
         if (!isReadyForClaim()) {
             throw new IllegalStateException("Cargo is not ready for claim");
         }
+        
+        String oldStatus = this.status.name();
         this.status = CargoStatus.CLAIMED;
+        
+        // Emitir evento de status
+        if (eventPublisher != null) {
+            eventPublisher.publish(new com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent(
+                this.bookingId.getBookingId(),
+                oldStatus,
+                this.status.name(),
+                "Cargo claimed by recipient"
+            ));
+        }
     }
 
     public void markAsCompleted() {
         if (status != CargoStatus.CLAIMED) {
             throw new IllegalStateException("Only claimed cargo can be marked as completed");
         }
+        
+        String oldStatus = this.status.name();
         this.status = CargoStatus.COMPLETED;
+        
+        // Emitir evento de status
+        if (eventPublisher != null) {
+            eventPublisher.publish(new com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent(
+                this.bookingId.getBookingId(),
+                oldStatus,
+                this.status.name(),
+                "Cargo delivery completed"
+            ));
+        }
     }
 
     public long calculateEstimatedTransitTime() {
@@ -171,6 +211,8 @@ public class Cargo {
 
     private void updateStatusBasedOnDelivery() {
         TransportStatus transportStatus = delivery.getTransportStatus();
+        String oldStatus = this.status.name();
+        
         switch (transportStatus) {
             case CLAIMED:
                 this.status = CargoStatus.CLAIMED;
@@ -188,6 +230,16 @@ public class Cargo {
             default:
                 // Não faz nada para outros status
                 break;
+        }
+        
+        // Emitir evento de status se mudou
+        if (!oldStatus.equals(this.status.name()) && eventPublisher != null) {
+            eventPublisher.publish(new com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent(
+                this.bookingId.getBookingId(),
+                oldStatus,
+                this.status.name(),
+                "Status updated based on delivery progress"
+            ));
         }
     }
 

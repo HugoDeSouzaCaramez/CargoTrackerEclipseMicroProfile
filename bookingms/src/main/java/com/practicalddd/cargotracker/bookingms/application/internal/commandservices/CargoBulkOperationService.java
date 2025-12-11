@@ -3,6 +3,7 @@ package com.practicalddd.cargotracker.bookingms.application.internal.commandserv
 import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoBookedEvent;
+import com.practicalddd.cargotracker.bookingms.domain.model.events.CargoStatusChangedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
@@ -83,8 +84,22 @@ public class CargoBulkOperationService {
         Cargo cargo = CargoFactory.createCargo(command, bookingIdStr);
         cargoRepository.store(cargo);
 
-        // Publica evento
-        eventPublisher.publish(new CargoBookedEvent(bookingIdStr));
+        // Publica evento de booking
+        eventPublisher.publish(new CargoBookedEvent(
+            bookingIdStr,
+            command.getBookingAmount(),
+            command.getOriginLocation(),
+            command.getDestLocation(),
+            command.getDestArrivalDeadline()
+        ));
+        
+        // Publica evento de status
+        eventPublisher.publish(new CargoStatusChangedEvent(
+            bookingIdStr,
+            null,
+            "BOOKED",
+            "Cargo booked in bulk operation"
+        ));
 
         return new BookingId(bookingIdStr);
     }
