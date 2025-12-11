@@ -2,8 +2,9 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.2" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
   <persistence-unit name="bookingms" transaction-type="JTA">
     <jta-data-source>bookingms</jta-data-source>
-    <class>com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo</class>
-    <class>com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Leg</class>
+    <class>com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity</class>
+    <class>com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.LegEntity</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
       <property name="eclipselink.ddl-generation.output-mode" value="database"/>

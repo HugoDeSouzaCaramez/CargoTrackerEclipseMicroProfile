@@ -12,6 +12,7 @@ import com.practicalddd.cargotracker.bookingms.domain.model.factory.CargoFactory
 import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
+import com.practicalddd.cargotracker.bookingms.infrastructure.config.AppConfig;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -48,18 +49,24 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
     @Inject
     private AuditService auditService;
 
-    // Lista de portos suportados pelo sistema
-    private static final Set<String> SUPPORTED_PORTS = new HashSet<>(Arrays.asList(
-        "USNYC", "NLRTM", "GBLON", "JPTYO", "SGSIN", 
-        "DEHAM", "CNHKG", "USLGB", "CNPVG", "HKHKG"
-    ));
+    @Inject
+    private AppConfig appConfig;
+
+    // Lista de portos suportados pelo sistema - agora carregada da configuração
+    private Set<String> getSupportedPorts() {
+        return new HashSet<>(Arrays.asList(appConfig.getSupportedPorts()));
+    }
 
     @Override
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
         // Validação adicional do comando - REGRAS DE APLICAÇÃO
-        if (bookCargoCommand.getDestArrivalDeadline().isBefore(LocalDateTime.now().plusDays(1))) {
-            throw new IllegalArgumentException("Arrival deadline must be at least 24 hours from now");
+        if (bookCargoCommand.getDestArrivalDeadline()
+                .isBefore(LocalDateTime.now().plusHours(appConfig.getMinDeadlineHours()))) {
+            throw new IllegalArgumentException(
+                String.format("Arrival deadline must be at least %d hours from now", 
+                             appConfig.getMinDeadlineHours())
+            );
         }
 
         // Validação adicional: verificar se portos são suportados pelo sistema
@@ -165,8 +172,12 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
         try {
             return transactionalService.executeInTransaction(() -> {
                 // Mesmas validações
-                if (bookCargoCommand.getDestArrivalDeadline().isBefore(LocalDateTime.now().plusDays(1))) {
-                    throw new IllegalArgumentException("Arrival deadline must be at least 24 hours from now");
+                if (bookCargoCommand.getDestArrivalDeadline()
+                        .isBefore(LocalDateTime.now().plusHours(appConfig.getMinDeadlineHours()))) {
+                    throw new IllegalArgumentException(
+                        String.format("Arrival deadline must be at least %d hours from now", 
+                                     appConfig.getMinDeadlineHours())
+                    );
                 }
 
                 validateSupportedPorts(bookCargoCommand.getOriginLocation(), bookCargoCommand.getDestLocation());
@@ -223,18 +234,19 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
     private void validateSupportedPorts(String origin, String destination) {
         String originUpper = origin.toUpperCase();
         String destUpper = destination.toUpperCase();
+        Set<String> supportedPorts = getSupportedPorts();
         
-        if (!SUPPORTED_PORTS.contains(originUpper)) {
+        if (!supportedPorts.contains(originUpper)) {
             throw new IllegalArgumentException(
                 String.format("Origin port '%s' is not supported. Supported ports: %s", 
-                    origin, String.join(", ", SUPPORTED_PORTS))
+                    origin, String.join(", ", supportedPorts))
             );
         }
         
-        if (!SUPPORTED_PORTS.contains(destUpper)) {
+        if (!supportedPorts.contains(destUpper)) {
             throw new IllegalArgumentException(
                 String.format("Destination port '%s' is not supported. Supported ports: %s", 
-                    destination, String.join(", ", SUPPORTED_PORTS))
+                    destination, String.join(", ", supportedPorts))
             );
         }
     }

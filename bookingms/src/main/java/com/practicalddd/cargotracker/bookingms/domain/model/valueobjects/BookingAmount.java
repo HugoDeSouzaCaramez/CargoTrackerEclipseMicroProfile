@@ -2,10 +2,17 @@ package com.practicalddd.cargotracker.bookingms.domain.model.valueobjects;
 
 import java.util.Objects;
 
+import javax.inject.Inject;
+
+import com.practicalddd.cargotracker.bookingms.infrastructure.config.AppConfig;
+
 public class BookingAmount {
     private static final int MIN_AMOUNT = 1;
     private static final int MAX_AMOUNT = 1000000; // 1 milhão como limite superior
     
+    @Inject
+    private static AppConfig appConfig;
+
     private final Integer bookingAmount;
 
     public BookingAmount(Integer bookingAmount) {
@@ -13,15 +20,18 @@ public class BookingAmount {
             throw new IllegalArgumentException("Booking amount cannot be null");
         }
         
-        if (bookingAmount < MIN_AMOUNT) {
+        int minAmount = 1;
+        int maxAmount = appConfig != null ? appConfig.getMaxBookingAmount() : 1000000;
+        
+        if (bookingAmount < minAmount) {
             throw new IllegalArgumentException(
-                String.format("Booking amount must be at least %d", MIN_AMOUNT)
+                String.format("Booking amount must be at least %d", minAmount)
             );
         }
         
-        if (bookingAmount > MAX_AMOUNT) {
+        if (bookingAmount > maxAmount) {
             throw new IllegalArgumentException(
-                String.format("Booking amount cannot exceed %d", MAX_AMOUNT)
+                String.format("Booking amount cannot exceed %d", maxAmount)
             );
         }
         
