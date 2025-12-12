@@ -35,7 +35,7 @@ public class Cargo {
         this.delivery = Delivery.derivedFrom(this.routeSpecification, this.itinerary, LastCargoHandledEvent.EMPTY);
         this.status = CargoStatus.BOOKED;
     }
-
+    
     private void validateBookingCommand(BookCargoCommand command) {
         if (command.getDestArrivalDeadline().isBefore(LocalDateTime.now().plusHours(24))) {
             throw new IllegalArgumentException("Arrival deadline must be at least 24 hours from now");
@@ -153,7 +153,7 @@ public class Cargo {
             .mapToLong(leg -> java.time.Duration.between(leg.getLoadTime(), leg.getUnloadTime()).toHours())
             .sum();
     }
-
+    
     public boolean isOnTrack() {
         if (itinerary.isEmpty()) {
             return true; // Não roteado ainda, tecnicamente está "no prazo"

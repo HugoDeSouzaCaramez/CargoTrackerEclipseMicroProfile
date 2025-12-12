@@ -1,6 +1,7 @@
 package com.practicalddd.cargotracker.bookingms.application.internal.commandservices;
 
 import com.practicalddd.cargotracker.bookingms.application.internal.events.DomainEventPublisher;
+import com.practicalddd.cargotracker.bookingms.application.internal.validators.CargoValidator;
 import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoBookingCommandPort;
 import com.practicalddd.cargotracker.bookingms.application.ports.outbound.AuditService;
 import com.practicalddd.cargotracker.bookingms.application.ports.outbound.BillingService;
@@ -53,6 +54,9 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
     @Inject
     private AppConfig appConfig;
 
+    @Inject
+    private CargoValidator cargoValidator;
+
     // Lista de portos suportados pelo sistema - agora carregada da configuração
     private Set<String> getSupportedPorts() {
         return new HashSet<>(Arrays.asList(appConfig.getSupportedPorts()));
@@ -61,20 +65,24 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
     @Override
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
-        // Validação adicional do comando - REGRAS DE APLICAÇÃO
-        if (bookCargoCommand.getDestArrivalDeadline()
-                .isBefore(LocalDateTime.now().plusHours(appConfig.getMinDeadlineHours()))) {
-            throw new IllegalArgumentException(
-                String.format("Arrival deadline must be at least %d hours from now", 
-                             appConfig.getMinDeadlineHours())
-            );
-        }
+        // Usar validador centralizado
+        cargoValidator.validateArrivalDeadline(bookCargoCommand.getDestArrivalDeadline());
+        cargoValidator.validateSupportedPorts(
+                bookCargoCommand.getOriginLocation(),
+                bookCargoCommand.getDestLocation());
+        cargoValidator.validateBookingAmount(bookCargoCommand.getBookingAmount());
 
-        // Validação adicional: verificar se portos são suportados pelo sistema
-        validateSupportedPorts(bookCargoCommand.getOriginLocation(), bookCargoCommand.getDestLocation());
+        // Validações cross-aggregate
+        cargoValidator.validateNoDuplicateBooking(
+                bookCargoCommand.getOriginLocation(),
+                bookCargoCommand.getDestLocation(),
+                bookCargoCommand.getDestArrivalDeadline());
 
-        // Validação adicional: verificar conflitos de booking
-        validateNoDuplicateBooking(bookCargoCommand);
+        cargoValidator.validateCrossAggregateConstraints(
+                bookCargoCommand.getOriginLocation(),
+                bookCargoCommand.getDestLocation(),
+                bookCargoCommand.getDestArrivalDeadline(),
+                bookCargoCommand.getBookingAmount());
 
         String bookingId = cargoRepository.nextBookingId();
 
@@ -84,44 +92,39 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
 
         // Publica evento de domínio enriquecido
         eventPublisher.publish(new CargoBookedEvent(
-            bookingId,
-            bookCargoCommand.getBookingAmount(),
-            bookCargoCommand.getOriginLocation(),
-            bookCargoCommand.getDestLocation(),
-            bookCargoCommand.getDestArrivalDeadline()
-        ));
-        
+                bookingId,
+                bookCargoCommand.getBookingAmount(),
+                bookCargoCommand.getOriginLocation(),
+                bookCargoCommand.getDestLocation(),
+                bookCargoCommand.getDestArrivalDeadline()));
+
         // Publica evento de status
         eventPublisher.publish(new CargoStatusChangedEvent(
-            bookingId,
-            null,
-            "BOOKED",
-            "Cargo booked with amount: " + bookCargoCommand.getBookingAmount()
-        ));
-        
+                bookingId,
+                null,
+                "BOOKED",
+                "Cargo booked with amount: " + bookCargoCommand.getBookingAmount()));
+
         // 1. Calcular tarifa
         try {
             boolean isUrgent = isUrgentBooking(bookCargoCommand.getDestArrivalDeadline());
             BigDecimal fee = billingService.calculateFee(
-                new Location(bookCargoCommand.getOriginLocation()),
-                new Location(bookCargoCommand.getDestLocation()),
-                bookCargoCommand.getBookingAmount(),
-                bookCargoCommand.getDestArrivalDeadline(),
-                isUrgent
-            );
-            
+                    new Location(bookCargoCommand.getOriginLocation()),
+                    new Location(bookCargoCommand.getDestLocation()),
+                    bookCargoCommand.getBookingAmount(),
+                    bookCargoCommand.getDestArrivalDeadline(),
+                    isUrgent);
+
             System.out.println(String.format(
-                "[BILLING] Fee calculated for booking %s: $%s (urgent: %s)",
-                bookingId, fee, isUrgent
-            ));
-            
+                    "[BILLING] Fee calculated for booking %s: $%s (urgent: %s)",
+                    bookingId, fee, isUrgent));
+
             // Validação de crédito (simulando um ID de cliente)
             String customerId = extractCustomerId(bookCargoCommand);
             if (billingService.validateCredit(customerId, fee)) {
                 String invoiceNumber = billingService.generateInvoice(bookingId, fee, customerId);
                 System.out.println(String.format(
-                    "[BILLING] Invoice generated: %s", invoiceNumber
-                ));
+                        "[BILLING] Invoice generated: %s", invoiceNumber));
             }
         } catch (Exception e) {
             System.err.println("[BILLING] Error processing billing: " + e.getMessage());
@@ -131,26 +134,24 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
         // 2. Registrar auditoria
         try {
             auditService.logAction(
-                "CREATE_BOOKING",
-                "Cargo",
-                bookingId,
-                "system", // No futuro, obter do contexto de autenticação
-                String.format("Booking from %s to %s, amount: %d, deadline: %s", 
-                    bookCargoCommand.getOriginLocation(), 
-                    bookCargoCommand.getDestLocation(),
-                    bookCargoCommand.getBookingAmount(),
-                    bookCargoCommand.getDestArrivalDeadline())
-            );
-            
+                    "CREATE_BOOKING",
+                    "Cargo",
+                    bookingId,
+                    "system", // No futuro, obter do contexto de autenticação
+                    String.format("Booking from %s to %s, amount: %d, deadline: %s",
+                            bookCargoCommand.getOriginLocation(),
+                            bookCargoCommand.getDestLocation(),
+                            bookCargoCommand.getBookingAmount(),
+                            bookCargoCommand.getDestArrivalDeadline()));
+
             auditService.logDataChange(
-                "Cargo",
-                bookingId,
-                "CREATED",
-                "N/A",
-                String.format("Origin: %s, Destination: %s", 
-                    bookCargoCommand.getOriginLocation(), 
-                    bookCargoCommand.getDestLocation())
-            );
+                    "Cargo",
+                    bookingId,
+                    "CREATED",
+                    "N/A",
+                    String.format("Origin: %s, Destination: %s",
+                            bookCargoCommand.getOriginLocation(),
+                            bookCargoCommand.getDestLocation()));
         } catch (Exception e) {
             System.err.println("[AUDIT] Error logging audit: " + e.getMessage());
             // Não propaga a exceção
@@ -159,18 +160,16 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
         // 3. Enviar notificações
         try {
             String customerEmail = extractCustomerEmail(bookCargoCommand);
-            
+
             notificationService.notifyBookingCreated(
-                bookingId,
-                bookCargoCommand.getOriginLocation(),
-                bookCargoCommand.getDestLocation(),
-                customerEmail
-            );
-            
+                    bookingId,
+                    bookCargoCommand.getOriginLocation(),
+                    bookCargoCommand.getDestLocation(),
+                    customerEmail);
+
             System.out.println(String.format(
-                "[NOTIFICATION] Sent booking confirmation for %s to %s",
-                bookingId, customerEmail
-            ));
+                    "[NOTIFICATION] Sent booking confirmation for %s to %s",
+                    bookingId, customerEmail));
         } catch (Exception e) {
             System.err.println("[NOTIFICATION] Error sending notification: " + e.getMessage());
             // Não propaga a exceção
@@ -190,9 +189,8 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
                 if (bookCargoCommand.getDestArrivalDeadline()
                         .isBefore(LocalDateTime.now().plusHours(appConfig.getMinDeadlineHours()))) {
                     throw new IllegalArgumentException(
-                        String.format("Arrival deadline must be at least %d hours from now", 
-                                     appConfig.getMinDeadlineHours())
-                    );
+                            String.format("Arrival deadline must be at least %d hours from now",
+                                    appConfig.getMinDeadlineHours()));
                 }
 
                 validateSupportedPorts(bookCargoCommand.getOriginLocation(), bookCargoCommand.getDestLocation());
@@ -204,53 +202,46 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
 
                 // Publica evento de domínio enriquecido
                 eventPublisher.publish(new CargoBookedEvent(
-                    bookingId,
-                    bookCargoCommand.getBookingAmount(),
-                    bookCargoCommand.getOriginLocation(),
-                    bookCargoCommand.getDestLocation(),
-                    bookCargoCommand.getDestArrivalDeadline()
-                ));
-                
+                        bookingId,
+                        bookCargoCommand.getBookingAmount(),
+                        bookCargoCommand.getOriginLocation(),
+                        bookCargoCommand.getDestLocation(),
+                        bookCargoCommand.getDestArrivalDeadline()));
+
                 // Publica evento de status
                 eventPublisher.publish(new CargoStatusChangedEvent(
-                    bookingId,
-                    null,
-                    "BOOKED",
-                    "Cargo booked with explicit transaction"
-                ));
+                        bookingId,
+                        null,
+                        "BOOKED",
+                        "Cargo booked with explicit transaction"));
 
-                
                 // Calcular tarifa
                 boolean isUrgent = isUrgentBooking(bookCargoCommand.getDestArrivalDeadline());
                 BigDecimal fee = billingService.calculateFee(
-                    new Location(bookCargoCommand.getOriginLocation()),
-                    new Location(bookCargoCommand.getDestLocation()),
-                    bookCargoCommand.getBookingAmount(),
-                    bookCargoCommand.getDestArrivalDeadline(),
-                    isUrgent
-                );
-                
+                        new Location(bookCargoCommand.getOriginLocation()),
+                        new Location(bookCargoCommand.getDestLocation()),
+                        bookCargoCommand.getBookingAmount(),
+                        bookCargoCommand.getDestArrivalDeadline(),
+                        isUrgent);
+
                 System.out.println(String.format(
-                    "[BILLING] Fee calculated (explicit transaction): $%s", fee
-                ));
+                        "[BILLING] Fee calculated (explicit transaction): $%s", fee));
 
                 // Registrar auditoria
                 auditService.logAction(
-                    "CREATE_BOOKING_EXPLICIT_TX",
-                    "Cargo",
-                    bookingId,
-                    "system",
-                    "Booking created with explicit transaction"
-                );
+                        "CREATE_BOOKING_EXPLICIT_TX",
+                        "Cargo",
+                        bookingId,
+                        "system",
+                        "Booking created with explicit transaction");
 
                 // Notificação
                 String customerEmail = extractCustomerEmail(bookCargoCommand);
                 notificationService.notifyBookingCreated(
-                    bookingId,
-                    bookCargoCommand.getOriginLocation(),
-                    bookCargoCommand.getDestLocation(),
-                    customerEmail
-                );
+                        bookingId,
+                        bookCargoCommand.getOriginLocation(),
+                        bookCargoCommand.getDestLocation(),
+                        customerEmail);
 
                 return new BookingId(bookingId);
             });
@@ -265,25 +256,23 @@ public class BookCargoCommandService implements CargoBookingCommandPort {
         String originUpper = origin.toUpperCase();
         String destUpper = destination.toUpperCase();
         Set<String> supportedPorts = getSupportedPorts();
-        
+
         if (!supportedPorts.contains(originUpper)) {
             throw new IllegalArgumentException(
-                String.format("Origin port '%s' is not supported. Supported ports: %s", 
-                    origin, String.join(", ", supportedPorts))
-            );
+                    String.format("Origin port '%s' is not supported. Supported ports: %s",
+                            origin, String.join(", ", supportedPorts)));
         }
-        
+
         if (!supportedPorts.contains(destUpper)) {
             throw new IllegalArgumentException(
-                String.format("Destination port '%s' is not supported. Supported ports: %s", 
-                    destination, String.join(", ", supportedPorts))
-            );
+                    String.format("Destination port '%s' is not supported. Supported ports: %s",
+                            destination, String.join(", ", supportedPorts)));
         }
     }
 
     private void validateNoDuplicateBooking(BookCargoCommand command) {
-        System.out.println("Validating no duplicate booking for: " + 
-            command.getOriginLocation() + " -> " + command.getDestLocation());
+        System.out.println("Validating no duplicate booking for: " +
+                command.getOriginLocation() + " -> " + command.getDestLocation());
     }
 
     /**

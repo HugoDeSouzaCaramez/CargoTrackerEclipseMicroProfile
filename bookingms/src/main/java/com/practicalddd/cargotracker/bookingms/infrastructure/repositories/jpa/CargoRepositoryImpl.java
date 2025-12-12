@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class CargoRepositoryImpl implements CargoRepository {
     private static final Logger logger = Logger.getLogger(CargoRepositoryImpl.class.getName());
+    private static final AtomicInteger counter = new AtomicInteger(1);
 
     @PersistenceContext(unitName = "bookingms")
     private EntityManager entityManager;
@@ -98,6 +100,22 @@ public class CargoRepositoryImpl implements CargoRepository {
 
     @Override
     public String nextBookingId() {
+        // Padrão: CAR + timestamp + sequencial
+        String timestamp = String.valueOf(System.currentTimeMillis() % 1000000); // últimos 6 dígitos
+        String sequence = String.format("%03d", counter.getAndIncrement() % 1000);
+        
+        // Resetar contador se passar de 999
+        if (counter.get() > 999) {
+            counter.set(1);
+        }
+        
+        String bookingId = "CAR" + timestamp + sequence;
+        logger.fine(() -> "Generated booking ID: " + bookingId);
+        return bookingId;
+    }
+    
+    // Método alternativo mantendo compatibilidade
+    public String nextBookingIdOld() {
         String random = UUID.randomUUID().toString().toUpperCase();
         return random.substring(0, random.indexOf("-"));
     }
