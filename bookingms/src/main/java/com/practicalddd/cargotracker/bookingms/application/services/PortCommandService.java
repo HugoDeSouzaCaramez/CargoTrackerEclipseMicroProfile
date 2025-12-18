@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.application.services;
 
-import com.practicalddd.cargotracker.bookingms.domain.portaggregate.aggregates.Port;
+import com.practicalddd.cargotracker.bookingms.domain.portaggregate.Port;
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.commands.*;
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.events.*;
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.repositories.PortRepository;

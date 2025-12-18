@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.persistence.mappers;
 
-import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.entities.Leg;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity;

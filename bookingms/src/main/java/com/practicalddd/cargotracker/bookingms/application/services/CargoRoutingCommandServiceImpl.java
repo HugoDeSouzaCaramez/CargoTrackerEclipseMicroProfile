@@ -2,7 +2,7 @@ package com.practicalddd.cargotracker.bookingms.application.services;
 
 import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoRoutingCommandPort;
 import com.practicalddd.cargotracker.bookingms.application.ports.outbound.ExternalRoutingService;
-import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.RouteCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.CargoItinerary;

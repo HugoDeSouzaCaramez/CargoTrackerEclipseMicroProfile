@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa;
 
-import com.practicalddd.cargotracker.bookingms.domain.portaggregate.aggregates.Port;
+import com.practicalddd.cargotracker.bookingms.domain.portaggregate.Port;
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.repositories.PortRepository;
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.valueobjects.PortId;
 

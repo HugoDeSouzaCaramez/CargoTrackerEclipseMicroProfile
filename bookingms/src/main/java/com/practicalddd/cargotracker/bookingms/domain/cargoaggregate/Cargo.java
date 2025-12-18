@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates;
+package com.practicalddd.cargotracker.bookingms.domain.cargoaggregate;
 
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.*;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.entities.Leg;

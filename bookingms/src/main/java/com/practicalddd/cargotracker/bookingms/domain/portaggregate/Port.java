@@ -1,4 +1,4 @@
-package com.practicalddd.cargotracker.bookingms.domain.portaggregate.aggregates;
+package com.practicalddd.cargotracker.bookingms.domain.portaggregate;
 
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.valueobjects.PortId;
 import com.practicalddd.cargotracker.bookingms.domain.portaggregate.valueobjects.PortCapacity;

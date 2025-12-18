@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.factory;
 
-import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
 
 public class CargoFactory {

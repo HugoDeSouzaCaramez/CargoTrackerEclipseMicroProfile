@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.application.commandservices;
 
-import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoStatusChangedEvent;

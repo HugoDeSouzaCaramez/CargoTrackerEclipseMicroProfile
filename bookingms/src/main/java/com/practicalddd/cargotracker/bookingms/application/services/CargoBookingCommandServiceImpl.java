@@ -1,9 +1,9 @@
 package com.practicalddd.cargotracker.bookingms.application.services;
 
 import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoBookingCommandPort;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
-import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoBookedEvent;
