@@ -1,7 +1,7 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.services;
 
 import com.practicalddd.cargotracker.bookingms.application.ports.outbound.BillingService;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Location;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.math.BigDecimal;

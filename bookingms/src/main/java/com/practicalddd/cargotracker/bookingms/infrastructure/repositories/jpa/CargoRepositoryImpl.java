@@ -1,8 +1,8 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
-import com.practicalddd.cargotracker.bookingms.domain.model.repositories.CargoRepository;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.repositories.CargoRepository;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.LegEntity;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.mappers.CargoMapper;

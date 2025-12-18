@@ -1,8 +1,8 @@
 package com.practicalddd.cargotracker.bookingms.interfaces.rest;
 
 import com.practicalddd.cargotracker.bookingms.application.ports.inbound.CargoQueryPort;
-import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.interfaces.rest.dto.CargoSummaryResource;
 
 import javax.enterprise.context.ApplicationScoped;

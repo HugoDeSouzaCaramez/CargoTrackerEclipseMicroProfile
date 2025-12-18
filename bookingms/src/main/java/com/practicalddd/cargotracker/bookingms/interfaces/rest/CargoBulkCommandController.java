@@ -1,8 +1,8 @@
 package com.practicalddd.cargotracker.bookingms.interfaces.rest;
 
-import com.practicalddd.cargotracker.bookingms.application.internal.commandservices.CargoBulkOperationService;
-import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.application.commandservices.CargoBulkOperationService;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
 import com.practicalddd.cargotracker.bookingms.interfaces.rest.dto.BookCargoResource;
 import com.practicalddd.cargotracker.bookingms.interfaces.rest.transform.BookCargoCommandDTOAssembler;
 

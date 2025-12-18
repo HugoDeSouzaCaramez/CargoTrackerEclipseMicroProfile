@@ -1,7 +1,7 @@
 package com.practicalddd.cargotracker.bookingms.application.ports.inbound;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
 
 import java.util.List;
 

@@ -1,8 +1,8 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.persistence.mappers;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.aggregates.Cargo;
-import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
-import com.practicalddd.cargotracker.bookingms.domain.model.entities.Leg;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.aggregates.Cargo;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.entities.Leg;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.LegEntity;
 
@@ -77,8 +77,8 @@ public class CargoMapper {
             // Se existirem legs na entidade, criar o itinerário
             if (entity.hasLegs()) {
                 List<Leg> legs = convertLegEntitiesToDomain(entity.getLegs());
-                com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary itinerary = 
-                    new com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary(legs);
+                com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.CargoItinerary itinerary = 
+                    new com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.CargoItinerary(legs);
                 cargo.assignToRoute(itinerary);
             }
             
@@ -98,9 +98,9 @@ public class CargoMapper {
         
         return legEntities.stream()
             .map(legEntity -> new Leg(
-                new com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Voyage(legEntity.getVoyageNumber()),
-                new com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location(legEntity.getLoadLocation()),
-                new com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location(legEntity.getUnloadLocation()),
+                new com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Voyage(legEntity.getVoyageNumber()),
+                new com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Location(legEntity.getLoadLocation()),
+                new com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Location(legEntity.getUnloadLocation()),
                 legEntity.getLoadTime(),
                 legEntity.getUnloadTime()
             ))

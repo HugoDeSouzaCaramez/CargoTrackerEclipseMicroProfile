@@ -1,7 +1,7 @@
 package com.practicalddd.cargotracker.bookingms.application.ports.inbound;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.BookCargoCommand;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
 
 /**
  * Porta de entrada (inbound port) para operações de booking de cargas.

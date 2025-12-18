@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.application.ports.outbound;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Location;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

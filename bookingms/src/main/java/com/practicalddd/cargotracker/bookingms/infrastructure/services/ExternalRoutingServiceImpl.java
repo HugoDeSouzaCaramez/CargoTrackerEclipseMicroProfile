@@ -1,10 +1,10 @@
 package com.practicalddd.cargotracker.bookingms.infrastructure.services;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.entities.Leg;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Location;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.RouteSpecification;
-import com.practicalddd.cargotracker.bookingms.domain.model.valueobjects.Voyage;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.entities.Leg;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.CargoItinerary;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Location;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.RouteSpecification;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.Voyage;
 import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.ExternalCargoRoutingClient;
 import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.dto.TransitEdgeDTO;
 import com.practicalddd.cargotracker.bookingms.infrastructure.services.http.dto.TransitPathDTO;

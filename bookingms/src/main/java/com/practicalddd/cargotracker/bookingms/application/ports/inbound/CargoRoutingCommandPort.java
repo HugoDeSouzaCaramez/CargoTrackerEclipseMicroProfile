@@ -1,6 +1,6 @@
 package com.practicalddd.cargotracker.bookingms.application.ports.inbound;
 
-import com.practicalddd.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands.RouteCargoCommand;
 
 /**
  * Porta de entrada (inbound port) para operações de roteamento de cargas.
