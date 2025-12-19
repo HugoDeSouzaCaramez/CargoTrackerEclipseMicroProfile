@@ -5,6 +5,7 @@
     <class>com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity</class>
     <class>com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.LegEntity</class>
     <class>com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.DomainEventEntity</class>
+    <class>com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.PortEntity</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>

@@ -7,6 +7,7 @@ import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.Carg
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.factory.CargoFactory;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.domain.services.CargoPortValidationService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,6 +30,9 @@ public class CargoBulkOperationService {
 
     @Inject
     private TransactionalService transactionalService;
+    
+    @Inject
+    private CargoPortValidationService cargoPortValidationService; // NOVO
 
     /**
      * Processa múltiplos bookings em uma única transação.
@@ -42,6 +46,21 @@ public class CargoBulkOperationService {
                 for (BookCargoCommand command : commands) {
                     // Validações específicas para bulk
                     validateBulkBookingCommand(command);
+                    
+                    // NOVO: Validação cross-aggregate para cada comando
+                    CargoPortValidationService.ValidationResult validationResult = 
+                        cargoPortValidationService.validateBookingFeasibility(
+                            command.getOriginLocation(),
+                            command.getDestLocation(),
+                            command.getBookingAmount()
+                        );
+                    
+                    validationResult.throwIfInvalid();
+                    
+                    if (validationResult.hasWarnings()) {
+                        System.out.println("[WARNING] Bulk booking validation: " + 
+                                         validationResult.getWarningSummary());
+                    }
 
                     // Processa cada booking individualmente
                     BookingId bookingId = processSingleBookingInTransaction(command);
@@ -54,17 +73,6 @@ public class CargoBulkOperationService {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Bulk booking operation failed. No bookings were processed.", e);
-        }
-    }
-
-    /**
-     * Atualiza múltiplos cargos em uma transação.
-     */
-    public void bulkUpdateCargos(Runnable... updateOperations) {
-        try {
-            transactionalService.executeInTransaction(updateOperations);
-        } catch (Exception e) {
-            throw new RuntimeException("Bulk update failed", e);
         }
     }
 

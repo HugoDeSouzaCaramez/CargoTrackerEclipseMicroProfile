@@ -10,6 +10,7 @@ import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.repositorie
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoRoutedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoStatusChangedEvent;
 import com.practicalddd.cargotracker.bookingms.application.events.DomainEventPublisher;
+import com.practicalddd.cargotracker.bookingms.domain.services.CargoPortValidationService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -26,6 +27,9 @@ public class CargoRoutingCommandServiceImpl implements CargoRoutingCommandPort {
     
     @Inject
     private DomainEventPublisher eventPublisher;
+    
+    @Inject
+    private CargoPortValidationService cargoPortValidationService; // NOVO
 
     @Override
     @Transactional
@@ -42,6 +46,23 @@ public class CargoRoutingCommandServiceImpl implements CargoRoutingCommandPort {
         
         if (itinerary.isEmpty()) {
             throw new IllegalArgumentException("No route found for cargo: " + bookingId);
+        }
+        
+        // NOVO: Validação dos portos no itinerário
+        CargoPortValidationService.ValidationResult routeValidation = 
+            cargoPortValidationService.validateRouteForCargo(
+                cargo.getRouteSpecification(),
+                cargo,
+                cargo.getBookingAmount().getBookingAmount()
+            );
+        
+        // Lança exceção se a validação falhar
+        routeValidation.throwIfInvalid();
+        
+        // Loga avisos
+        if (routeValidation.hasWarnings()) {
+            System.out.println("[WARNING] Route validation warnings: " + 
+                             routeValidation.getWarningSummary());
         }
         
         // Atribui a rota ao cargo

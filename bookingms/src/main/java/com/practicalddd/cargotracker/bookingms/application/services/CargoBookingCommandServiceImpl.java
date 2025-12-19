@@ -9,6 +9,8 @@ import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.repositorie
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoBookedEvent;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.events.CargoStatusChangedEvent;
 import com.practicalddd.cargotracker.bookingms.application.events.DomainEventPublisher;
+import com.practicalddd.cargotracker.bookingms.domain.services.CargoPortValidationService;
+
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -22,10 +24,30 @@ public class CargoBookingCommandServiceImpl implements CargoBookingCommandPort {
     
     @Inject
     private DomainEventPublisher eventPublisher;
+    
+    @Inject
+    private CargoPortValidationService cargoPortValidationService; // NOVO
 
     @Override
     @Transactional
     public BookingId bookCargo(BookCargoCommand bookCargoCommand) {
+        // NOVO: Validação cross-aggregate antes de criar o booking
+        CargoPortValidationService.ValidationResult validationResult = 
+            cargoPortValidationService.validateBookingFeasibility(
+                bookCargoCommand.getOriginLocation(),
+                bookCargoCommand.getDestLocation(),
+                bookCargoCommand.getBookingAmount()
+            );
+        
+        // Lança exceção se a validação falhar
+        validationResult.throwIfInvalid();
+        
+        // Loga avisos se houver (mas não falha)
+        if (validationResult.hasWarnings()) {
+            System.out.println("[WARNING] Booking validation warnings: " + 
+                             validationResult.getWarningSummary());
+        }
+
         // Gera ID único
         String bookingIdStr = cargoRepository.nextBookingId();
         
