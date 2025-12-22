@@ -1,18 +1,25 @@
 package com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects;
 
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.entities.Leg;
+import com.practicalddd.cargotracker.bookingms.domain.services.RouteFeasibilityService;
+
+import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
-import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.entities.Leg;
-
 public class RouteSpecification {
+    
+    @Inject
+    private transient RouteFeasibilityService routeFeasibilityService;
+    
     private final Location origin;
     private final Location destination;
     private final LocalDateTime arrivalDeadline;
     private final TransportMode transportMode;
     private final CargoType cargoType;
+    private final boolean isIntercontinental;
 
     public RouteSpecification(Location origin, Location destination, LocalDateTime arrivalDeadline) {
         this(origin, destination, arrivalDeadline, TransportMode.SEA, CargoType.GENERAL);
@@ -27,6 +34,7 @@ public class RouteSpecification {
         this.arrivalDeadline = arrivalDeadline;
         this.transportMode = transportMode != null ? transportMode : TransportMode.SEA;
         this.cargoType = cargoType != null ? cargoType : CargoType.GENERAL;
+        this.isIntercontinental = isIntercontinental(origin, destination);
     }
 
     private void validateSpecification(Location origin, Location destination, LocalDateTime arrivalDeadline) {
@@ -39,39 +47,55 @@ public class RouteSpecification {
         if (arrivalDeadline == null) {
             throw new IllegalArgumentException("Arrival deadline cannot be null");
         }
-        if (arrivalDeadline.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Arrival deadline cannot be in the past");
+        
+        // Usar DeadlinePolicy para validação consistente
+        boolean isIntercontinental = isIntercontinental(origin, destination);
+        DeadlinePolicy policy = new DeadlinePolicy(arrivalDeadline, isIntercontinental);
+        
+        if (!policy.isValidForBooking()) {
+            throw new IllegalArgumentException(
+                String.format("Prazo insuficiente para rota %s. Mínimo requerido: %s. Dias restantes: %d",
+                    isIntercontinental ? "intercontinental" : "regional",
+                    policy.getMinimumRequiredDays(),
+                    policy.getRemainingDays())
+            );
         }
+        
         if (origin.equals(destination)) {
             throw new IllegalArgumentException("Origin and destination must be different");
         }
         
-        // Validar prazo mínimo baseado na distância (simplificado)
-        LocalDateTime minimumDeadline = LocalDateTime.now().plusDays(calculateMinimumDays(origin, destination));
-        if (arrivalDeadline.isBefore(minimumDeadline)) {
-            throw new IllegalArgumentException(
-                String.format("Arrival deadline too soon. Minimum required: %s", minimumDeadline)
-            );
+        // Aviso se for urgente
+        if (policy.isUrgent()) {
+            System.out.println(String.format(
+                "[AVISO] Rota %s criada com status %s. Prazo: %d dias",
+                isIntercontinental ? "intercontinental" : "regional",
+                policy.getPriorityCategory(),
+                policy.getRemainingDays()
+            ));
         }
     }
     
-    private long calculateMinimumDays(Location origin, Location destination) {
-        // Simulação: distâncias baseadas em regiões
-        // Usar serviço de geolocalização no futuro
-        boolean intercontinental = isIntercontinental(origin, destination);
-        return intercontinental ? 14L : 7L; // 14 dias intercontinental, 7 dias regional
-    }
-    
     private boolean isIntercontinental(Location origin, Location destination) {
-        // Lógica simplificada para determinar se é viagem intercontinental
         String originContinent = getContinentCode(origin.getUnLocCode());
         String destContinent = getContinentCode(destination.getUnLocCode());
         return !originContinent.equals(destContinent);
     }
     
     private String getContinentCode(String unlocode) {
-        // Extrai código de continente do UN/LOCODE (primeira letra)
-        return unlocode.substring(0, 1);
+        // Extrai código de continente baseado no código de país
+        String countryCode = unlocode.substring(0, 2);
+        
+        // Mapeamento simplificado de países para continentes
+        switch (countryCode) {
+            case "US": case "CA": case "MX": return "NA"; // América do Norte
+            case "BR": case "AR": case "CL": return "SA"; // América do Sul
+            case "GB": case "DE": case "FR": case "NL": case "ES": case "IT": return "EU"; // Europa
+            case "CN": case "JP": case "KR": case "IN": return "AS"; // Ásia
+            case "AU": case "NZ": return "OC"; // Oceania
+            case "ZA": case "EG": case "NG": return "AF"; // África
+            default: return "XX"; // Desconhecido
+        }
     }
 
     public boolean isSatisfiedBy(CargoItinerary itinerary) {
@@ -79,7 +103,6 @@ public class RouteSpecification {
             return false;
         }
         
-        // Verificar se o itinerário conecta origem e destino
         List<Leg> legs = itinerary.getLegs();
         Leg firstLeg = legs.get(0);
         Leg lastLeg = legs.get(legs.size() - 1);
@@ -92,13 +115,11 @@ public class RouteSpecification {
             return false;
         }
         
-        // Verificar se chega antes do deadline
         LocalDateTime estimatedArrival = lastLeg.getUnloadTime();
         if (estimatedArrival.isAfter(arrivalDeadline)) {
             return false;
         }
         
-        // Verificar compatibilidade com modo de transporte
         if (!isTransportModeCompatible(itinerary)) {
             return false;
         }
@@ -107,14 +128,12 @@ public class RouteSpecification {
     }
     
     private boolean isTransportModeCompatible(CargoItinerary itinerary) {
-        // Verificar se todos os legs são compatíveis com o modo de transporte
         return itinerary.getLegs().stream()
             .allMatch(leg -> isLegCompatibleWithTransportMode(leg));
     }
     
     private boolean isLegCompatibleWithTransportMode(Leg leg) {
-        // Lógica para validar compatibilidade (simplificada)
-        // No futuro, verificar tipo de vessel vs. transport mode
+        // Lógica para validar compatibilidade
         return true;
     }
     
@@ -123,7 +142,22 @@ public class RouteSpecification {
     }
     
     public boolean isUrgent() {
-        return getRemainingDays() < 7;
+        DeadlinePolicy policy = new DeadlinePolicy(arrivalDeadline, isIntercontinental);
+        return policy.isUrgent();
+    }
+    
+    public boolean isCritical() {
+        DeadlinePolicy policy = new DeadlinePolicy(arrivalDeadline, isIntercontinental);
+        return policy.isCritical();
+    }
+    
+    public String getPriorityCategory() {
+        DeadlinePolicy policy = new DeadlinePolicy(arrivalDeadline, isIntercontinental);
+        return policy.getPriorityCategory();
+    }
+    
+    public boolean isIntercontinental() {
+        return isIntercontinental;
     }
 
     // Getters
@@ -158,6 +192,7 @@ public class RouteSpecification {
                 ", arrivalDeadline=" + arrivalDeadline +
                 ", transportMode=" + transportMode +
                 ", cargoType=" + cargoType +
+                ", isIntercontinental=" + isIntercontinental +
                 '}';
     }
 }

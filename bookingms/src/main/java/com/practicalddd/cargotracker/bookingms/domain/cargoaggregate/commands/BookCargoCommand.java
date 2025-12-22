@@ -1,5 +1,7 @@
 package com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.commands;
 
+import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.DeadlinePolicy;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -73,6 +75,10 @@ public class BookCargoCommand {
     
     public LocalDateTime getDestArrivalDeadline() { 
         return destArrivalDeadline; 
+    }
+    
+    public DeadlinePolicy getDeadlinePolicy(boolean isIntercontinental) {
+        return new DeadlinePolicy(this.destArrivalDeadline, isIntercontinental);
     }
 
     @Override

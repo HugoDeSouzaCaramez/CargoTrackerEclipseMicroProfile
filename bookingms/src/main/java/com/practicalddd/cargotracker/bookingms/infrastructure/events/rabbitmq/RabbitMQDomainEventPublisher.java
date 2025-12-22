@@ -32,6 +32,15 @@ public class RabbitMQDomainEventPublisher implements DomainEventPublisher {
     @Inject
     private EventStoreRepository eventStoreRepository;
 
+    @Inject
+    private Event<CargoBookedEvent> cargoBookedEventAsync;
+    
+    @Inject
+    private Event<CargoRoutedEvent> cargoRoutedEventAsync;
+    
+    @Inject
+    private Event<CargoStatusChangedEvent> cargoStatusChangedEventAsync;
+
     @Override
     public void publish(DomainEvent event) {
         try {
@@ -68,34 +77,50 @@ public class RabbitMQDomainEventPublisher implements DomainEventPublisher {
     }
     
     private void publishCargoBookedEvent(CargoBookedEvent domainEvent) {
+        // Publica no RabbitMQ (código existente)
         CargoBookedIntegrationEvent infraEvent = new CargoBookedIntegrationEvent();
         infraEvent.setId(domainEvent.getBookingId());
         cargoBookedEventControl.fire(infraEvent);
         
+        // Dispara evento assíncrono para projeções
+        cargoBookedEventAsync.fireAsync(domainEvent);
+        
         logger.fine(() -> String.format(
-            "[EVENT] CargoBookedEvent published: %s", 
+            "[EVENT] CargoBookedEvent published: %s (async projection triggered)", 
             domainEvent.getBookingId()
         ));
     }
     
     private void publishCargoRoutedEvent(CargoRoutedEvent domainEvent) {
+        // Publica no RabbitMQ (código existente)
         CargoRoutedIntegrationEvent infraEvent = new CargoRoutedIntegrationEvent();
         CargoRoutedEventData eventData = new CargoRoutedEventData();
         eventData.setBookingId(domainEvent.getBookingId());
         infraEvent.setContent(eventData);
         cargoRoutedEventControl.fire(infraEvent);
         
+        // Dispara evento assíncrono para projeções
+        cargoRoutedEventAsync.fireAsync(domainEvent);
+        
         logger.fine(() -> String.format(
-            "[EVENT] CargoRoutedEvent published: %s", 
+            "[EVENT] CargoRoutedEvent published: %s (async projection triggered)", 
             domainEvent.getBookingId()
         ));
     }
     
     private void publishCargoStatusChangedEvent(CargoStatusChangedEvent event) {
-        // Por enquanto, apenas log. No futuro, integrar com sistema de notificação
+        // Log existente
         logger.info(String.format(
             "[EVENT] CargoStatusChangedEvent: %s (%s -> %s)",
             event.getBookingId(), event.getOldStatus(), event.getNewStatus()
+        ));
+        
+        // Dispara evento assíncrono para projeções
+        cargoStatusChangedEventAsync.fireAsync(event);
+        
+        logger.fine(() -> String.format(
+            "[EVENT] CargoStatusChangedEvent projection triggered for: %s", 
+            event.getBookingId()
         ));
     }
     
