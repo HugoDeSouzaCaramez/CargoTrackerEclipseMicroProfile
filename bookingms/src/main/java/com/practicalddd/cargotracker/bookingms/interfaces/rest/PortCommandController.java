@@ -15,6 +15,9 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 @Path("/port/commands")
@@ -24,7 +27,7 @@ import java.util.logging.Logger;
 public class PortCommandController {
 
     private static final Logger logger = Logger.getLogger(PortCommandController.class.getName());
-    
+
     @Inject
     private PortCommandService portCommandService;
 
@@ -33,21 +36,20 @@ public class PortCommandController {
     public Response createPort(CreatePortResource createPortResource) {
         try {
             validateCreatePortResource(createPortResource);
-            
+
             CreatePortCommand command = new CreatePortCommand(
-                createPortResource.getUnLocCode(),
-                createPortResource.getName(),
-                createPortResource.getCountry(),
-                createPortResource.getTimeZone(),
-                createPortResource.getInitialCapacity()
-            );
-            
+                    createPortResource.getUnLocCode(),
+                    createPortResource.getName(),
+                    createPortResource.getCountry(),
+                    createPortResource.getTimeZone(),
+                    createPortResource.getInitialCapacity());
+
             PortId portId = portCommandService.createPort(command);
-            
+
             return Response.ok()
                     .entity(portId)
                     .build();
-                    
+
         } catch (IllegalArgumentException e) {
             return handleBusinessValidationError(e);
         } catch (Exception e) {
@@ -63,18 +65,17 @@ public class PortCommandController {
     public Response updatePortCapacity(UpdatePortCapacityResource updatePortCapacityResource) {
         try {
             validateUpdatePortCapacityResource(updatePortCapacityResource);
-            
+
             UpdatePortCapacityCommand command = new UpdatePortCapacityCommand(
-                updatePortCapacityResource.getPortUnLocCode(),
-                updatePortCapacityResource.getNewMaxCapacity()
-            );
-            
+                    updatePortCapacityResource.getPortUnLocCode(),
+                    updatePortCapacityResource.getNewMaxCapacity());
+
             portCommandService.updatePortCapacity(command);
-            
+
             return Response.ok()
                     .entity("Port capacity updated successfully")
                     .build();
-                    
+
         } catch (IllegalArgumentException e) {
             return handleBusinessValidationError(e);
         } catch (Exception e) {
@@ -90,21 +91,19 @@ public class PortCommandController {
     public Response recordCargoMovement(RecordPortCargoMovementResource recordPortCargoMovementResource) {
         try {
             validateRecordPortCargoMovementResource(recordPortCargoMovementResource);
-            
+
             RecordPortCargoMovementCommand command = new RecordPortCargoMovementCommand(
-                recordPortCargoMovementResource.getPortUnLocCode(),
-                recordPortCargoMovementResource.getCargoAmount(),
-                RecordPortCargoMovementCommand.MovementType.valueOf(
-                    recordPortCargoMovementResource.getMovementType().toUpperCase()
-                )
-            );
-            
+                    recordPortCargoMovementResource.getPortUnLocCode(),
+                    recordPortCargoMovementResource.getCargoAmount(),
+                    RecordPortCargoMovementCommand.MovementType.valueOf(
+                            recordPortCargoMovementResource.getMovementType().toUpperCase()));
+
             portCommandService.recordCargoMovement(command);
-            
+
             return Response.ok()
                     .entity("Cargo movement recorded successfully")
                     .build();
-                    
+
         } catch (IllegalArgumentException e) {
             return handleBusinessValidationError(e);
         } catch (Exception e) {
@@ -114,7 +113,29 @@ public class PortCommandController {
                     .build();
         }
     }
+
     
+    @POST
+    @Path("/createBatch")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createPortsBatch(List<CreatePortResource> portResources) {
+        List<PortId> results = new ArrayList<>();
+        for (CreatePortResource resource : portResources) {
+            try {
+                PortId portId = portCommandService.createPort(new CreatePortCommand(
+                        resource.getUnLocCode(),
+                        resource.getName(),
+                        resource.getCountry(),
+                        resource.getTimeZone(),
+                        resource.getInitialCapacity()));
+                results.add(portId);
+            } catch (Exception e) {
+                // Log e continuar com os outros
+            }
+        }
+        return Response.ok(results).build();
+    }
+
     private void validateCreatePortResource(CreatePortResource resource) {
         if (resource == null) {
             throw new IllegalArgumentException("Request body cannot be null");
@@ -132,7 +153,7 @@ public class PortCommandController {
             throw new IllegalArgumentException("Initial capacity must be positive");
         }
     }
-    
+
     private void validateUpdatePortCapacityResource(UpdatePortCapacityResource resource) {
         if (resource == null) {
             throw new IllegalArgumentException("Request body cannot be null");
@@ -144,7 +165,7 @@ public class PortCommandController {
             throw new IllegalArgumentException("New max capacity must be positive");
         }
     }
-    
+
     private void validateRecordPortCargoMovementResource(RecordPortCargoMovementResource resource) {
         if (resource == null) {
             throw new IllegalArgumentException("Request body cannot be null");
@@ -158,33 +179,33 @@ public class PortCommandController {
         if (resource.getMovementType() == null || resource.getMovementType().trim().isEmpty()) {
             throw new IllegalArgumentException("Movement type is required (ARRIVAL or DEPARTURE)");
         }
-        if (!resource.getMovementType().equalsIgnoreCase("ARRIVAL") && 
-            !resource.getMovementType().equalsIgnoreCase("DEPARTURE")) {
+        if (!resource.getMovementType().equalsIgnoreCase("ARRIVAL") &&
+                !resource.getMovementType().equalsIgnoreCase("DEPARTURE")) {
             throw new IllegalArgumentException("Movement type must be ARRIVAL or DEPARTURE");
         }
     }
-    
+
     private Response handleBusinessValidationError(IllegalArgumentException e) {
         String message = e.getMessage();
         Response.Status status;
-        
+
         if (message.contains("already exists") || message.contains("duplicate")) {
             status = Response.Status.CONFLICT; // 409
         } else if (message.contains("not found") || message.contains("does not exist")) {
             status = Response.Status.NOT_FOUND; // 404
-        } else if (message.contains("cannot be") || message.contains("must be") || 
-                   message.contains("is required") || message.contains("invalid")) {
+        } else if (message.contains("cannot be") || message.contains("must be") ||
+                message.contains("is required") || message.contains("invalid")) {
             status = Response.Status.BAD_REQUEST; // 400
         } else {
             status = Response.Status.BAD_REQUEST; // default
         }
-        
+
         return Response.status(status)
                 .entity(ErrorResponse.builder()
-                    .title(status.getReasonPhrase())
-                    .detail(message)
-                    .status(status.getStatusCode())
-                    .build())
+                        .title(status.getReasonPhrase())
+                        .detail(message)
+                        .status(status.getStatusCode())
+                        .build())
                 .build();
     }
 }

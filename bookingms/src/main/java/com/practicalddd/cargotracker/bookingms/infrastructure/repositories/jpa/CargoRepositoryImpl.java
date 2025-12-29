@@ -3,6 +3,7 @@ package com.practicalddd.cargotracker.bookingms.infrastructure.repositories.jpa;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.Cargo;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.repositories.CargoRepository;
 import com.practicalddd.cargotracker.bookingms.domain.cargoaggregate.valueobjects.BookingId;
+import com.practicalddd.cargotracker.bookingms.domain.specification.Specification;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.CargoEntity;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.jpa.entities.LegEntity;
 import com.practicalddd.cargotracker.bookingms.infrastructure.persistence.mappers.CargoMapper;
@@ -11,6 +12,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +31,10 @@ import java.util.stream.Collectors;
 public class CargoRepositoryImpl implements CargoRepository {
     private static final Logger logger = Logger.getLogger(CargoRepositoryImpl.class.getName());
     private static final AtomicInteger counter = new AtomicInteger(1);
-
+    
     @PersistenceContext(unitName = "bookingms")
     private EntityManager entityManager;
-
+    
     @Override
     public Optional<Cargo> find(BookingId bookingId) {
         try {
@@ -144,5 +150,77 @@ public class CargoRepositoryImpl implements CargoRepository {
         return bookingIds.stream()
                 .map(BookingId::new)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<Cargo> findAll(Specification<Cargo> specification) {
+        try {
+            // Para specifications que operam em Cargo (domínio), precisamos converter para CargoEntity
+            // Vamos buscar todas e filtrar em memória para specifications simples
+            // Em produção, criar uma Specification<CargoEntity> e usar Criteria API
+            List<Cargo> allCargos = findAll();
+            return allCargos.stream()
+                    .filter(cargo -> specification.isSatisfiedBy(cargo))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error finding cargos by specification", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    // NOVO: Método para usar Specifications JPA diretamente com CargoEntity
+    public List<Cargo> findAllBySpecification(com.practicalddd.cargotracker.bookingms.domain.specification.Specification<CargoEntity> specification) {
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<CargoEntity> cq = cb.createQuery(CargoEntity.class);
+            Root<CargoEntity> root = cq.from(CargoEntity.class);
+            
+            Predicate predicate = specification.toPredicate(root, cq, cb);
+            cq.where(predicate);
+            
+            TypedQuery<CargoEntity> query = entityManager.createQuery(cq);
+            List<CargoEntity> entities = query.getResultList();
+            
+            // Carregar as legs para cada entidade
+            for (CargoEntity entity : entities) {
+                if (entity.getLegs() != null) {
+                    entity.getLegs().size(); // Force initialization
+                }
+            }
+            
+            return entities.stream()
+                    .map(CargoMapper::toDomain)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error finding cargos by JPA specification", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    // NOVO: Método genérico para consultas com Criteria API
+    public List<Cargo> findWithCriteria(java.util.function.Function<CriteriaBuilder, Predicate> predicateBuilder) {
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<CargoEntity> cq = cb.createQuery(CargoEntity.class);
+            Root<CargoEntity> root = cq.from(CargoEntity.class);
+            
+            cq.where(predicateBuilder.apply(cb));
+            
+            TypedQuery<CargoEntity> query = entityManager.createQuery(cq);
+            List<CargoEntity> entities = query.getResultList();
+            
+            for (CargoEntity entity : entities) {
+                if (entity.getLegs() != null) {
+                    entity.getLegs().size(); // Force initialization
+                }
+            }
+            
+            return entities.stream()
+                    .map(CargoMapper::toDomain)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error finding cargos with criteria", e);
+            return new ArrayList<>();
+        }
     }
 }
